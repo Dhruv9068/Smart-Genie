@@ -416,15 +416,25 @@ git push origin feature/amazing-feature
 
 ---
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
 
 <div align="center">
 
 **Made with ❤️ by the SchemeGenie Team**
+
+graph LR
+    A[Dhruv Chaturvedi<br>Team Leader<br>Full Stack + AI] --> B[Frontend Team]
+    A --> C[Backend Team]
+    A --> D[AI/ML Team]
+    
+    B --> F[React Developers]
+    B --> G[Garima<br>UI/UX Designer]
+
+    C --> H[Firebase Specialists]
+    C --> I[API Developers]
+
+    D --> J[Dhruv Chaturvedi<br>AI Engineer]
+    D --> K[Kushboo<br>Research + Wireframing + UI/UX]
 
 *Transforming lives through AI-powered government benefit access*
 
