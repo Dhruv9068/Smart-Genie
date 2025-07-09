@@ -9,13 +9,18 @@
     "scripting",
     "webRequest"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "host_permissions": [
     "https://*.gov/*",
     "https://*.gov.in/*",
     "https://*.scholarships.gov.in/*",
     "https://*.ssp.postmatric.karnataka.gov.in/*",
     "https://*.karepass.cgg.gov.in/*",
-    "https://schemegenie.netlify.app/*"
+    "https://schemegenie.netlify.app/*",
+    "http://localhost:5173/*",
+    "http://127.0.0.1:5501/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -27,7 +32,9 @@
         "https://*.gov.in/*",
         "https://*.scholarships.gov.in/*",
         "https://*.ssp.postmatric.karnataka.gov.in/*",
-        "https://*.karepass.cgg.gov.in/*"
+        "https://*.karepass.cgg.gov.in/*",
+        "http://localhost:5173/*",
+        "http://127.0.0.1:5501/*"
       ],
       "js": ["content.js"],
       "css": ["content.css"]

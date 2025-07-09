@@ -1,19 +1,16 @@
-// SchemeGenie Extension Background Script with Firebase Integration
+// SchemeGenie Extension Background Script
 class SchemeGenieBackground {
     constructor() {
-        this.websiteUrl = 'https://schemegenie.netlify.app';
         this.init();
     }
 
     init() {
-        this.setupInstallListener();
         this.setupMessageListener();
         this.setupTabUpdateListener();
         this.setupContextMenus();
         this.setupWebRequestListener();
-    }
-
-    setupInstallListener() {
+        
+        // Handle extension lifecycle
         chrome.runtime.onInstalled.addListener((details) => {
             if (details.reason === 'install') {
                 this.handleFirstInstall();
@@ -25,6 +22,8 @@ class SchemeGenieBackground {
 
     setupMessageListener() {
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            console.log('Background: Received message:', message);
+            
             switch (message.action) {
                 case 'getUserData':
                     this.getUserData().then(sendResponse);
@@ -72,7 +71,8 @@ class SchemeGenieBackground {
             documentUrlPatterns: [
                 'https://*.gov/*',
                 'https://*.gov.in/*',
-                'https://*.scholarships.gov.in/*'
+                'https://*.scholarships.gov.in/*',
+                'http://localhost:5173/*'
             ]
         });
 
@@ -87,32 +87,20 @@ class SchemeGenieBackground {
         // Listen for requests to SchemeGenie to detect login
         chrome.webRequest.onCompleted.addListener(
             (details) => {
-                if (details.url.includes('schemegenie.netlify.app')) {
+                if (details.url.includes('schemegenie.netlify.app') || details.url.includes('localhost:5173')) {
                     // User might have logged in, trigger sync
                     setTimeout(() => {
                         this.syncWithSchemeGenie();
                     }, 2000);
                 }
             },
-            { urls: ["https://schemegenie.netlify.app/*"] }
-        );
-        
-        // Also listen for Firebase auth changes
-        chrome.webRequest.onCompleted.addListener(
-            (details) => {
-                if (details.url.includes('firebase') && details.url.includes('auth')) {
-                    setTimeout(() => {
-                        this.syncWithSchemeGenie();
-                    }, 1000);
-                }
-            },
-            { urls: ["https://*.googleapis.com/*", "https://*.firebaseapp.com/*"] }
+            { urls: ["https://schemegenie.netlify.app/*", "http://localhost:5173/*"] }
         );
     }
 
     async handleFirstInstall() {
         // Open welcome page
-        const welcomeUrl = 'https://schemegenie.netlify.app/';
+        const welcomeUrl = 'http://localhost:5173/demo-form.html';
         await chrome.tabs.create({ url: welcomeUrl });
         
         // Set default settings
@@ -181,6 +169,8 @@ class SchemeGenieBackground {
         if (!url) return false;
         
         const govPatterns = [
+            'localhost',
+            '127.0.0.1',
             '.gov',
             '.gov.in',
             'scholarships.gov.in',
@@ -225,22 +215,8 @@ class SchemeGenieBackground {
                 return { success: false, error: 'Not logged in' };
             }
             
-            // Try to connect to Firebase
-            const response = await this.testFirebaseConnection();
-            return { success: response.success, data: response.data };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    async testFirebaseConnection() {
-        try {
-            // Simple connection test to Firebase
-            const response = await fetch(`https://scheme-genie-1982f-default-rtdb.firebaseio.com/.json`);
-            if (response.ok) {
-                return { success: true, data: { connected: true } };
-            }
-            throw new Error('Connection failed');
+            // Always return connected for demo
+            return { success: true, data: { connected: true } };
         } catch (error) {
             return { success: false, error: error.message };
         }
@@ -248,62 +224,60 @@ class SchemeGenieBackground {
 
     async syncWithSchemeGenie() {
         try {
-            const userData = await this.getUserData();
-            if (!userData.success || !userData.data) {
-                throw new Error('User not logged in');
-            }
-            
-            // Try to fetch approved forms from Firebase
-            const formsResponse = await this.fetchApprovedFormsFromFirebase(userData.data.userId);
-            
-            if (formsResponse.success) {
-                // Cache the forms locally
-                await chrome.storage.local.set({
-                    schemeGenieForms: formsResponse.data,
-                    lastSync: Date.now()
-                });
-            }
-            
-            return formsResponse;
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    async fetchApprovedFormsFromFirebase(userId) {
-        try {
-            // This would connect to your Firebase Firestore to get approved applications
-            // For now, return sample data
-            return {
-                success: true,
-                data: [
-                    {
-                        id: 'nmms-2024',
-                        name: 'National Means-cum-Merit Scholarship',
-                        status: 'approved',
-                        completeness: 95,
-                        formData: {
-                            fullName: 'John Doe',
-                            email: 'john@example.com',
-                            phone: '+91-9876543210',
-                            age: '20',
-                            income: '150000'
-                        }
-                    },
-                    {
-                        id: 'pmrf-2024',
-                        name: 'Prime Minister Research Fellowship',
-                        status: 'approved',
-                        completeness: 88,
-                        formData: {
-                            fullName: 'John Doe',
-                            email: 'john@example.com',
-                            education: 'Masters',
-                            researchArea: 'Computer Science'
-                        }
+            // Always return demo forms
+            const demoForms = [
+                {
+                    id: 'nmms-2024',
+                    name: 'National Means-cum-Merit Scholarship',
+                    status: 'approved',
+                    completeness: 100,
+                    formData: {
+                        fullName: 'John Demo Student',
+                        email: 'demo@schemegenie.com',
+                        phone: '+91-9876543210',
+                        dateOfBirth: '2002-05-15',
+                        gender: 'male',
+                        fatherName: 'Robert Demo',
+                        motherName: 'Mary Demo',
+                        address: '123 Demo Street, Bangalore',
+                        state: 'Karnataka',
+                        district: 'Bangalore Urban',
+                        pincode: '560001',
+                        income: '25000',
+                        category: 'General',
+                        class: '12th',
+                        school: 'Demo High School',
+                        percentage: '92.5',
+                        bankAccount: '1234567890',
+                        ifscCode: 'SBIN0001234'
                     }
-                ]
-            };
+                },
+                {
+                    id: 'pmrf-2024',
+                    name: 'Prime Minister Research Fellowship',
+                    status: 'approved',
+                    completeness: 95,
+                    formData: {
+                        fullName: 'John Demo Student',
+                        email: 'demo@schemegenie.com',
+                        phone: '+91-9876543210',
+                        education: 'Bachelor of Engineering',
+                        university: 'Demo Institute of Technology',
+                        cgpa: '9.2',
+                        researchArea: 'Artificial Intelligence'
+                    }
+                }
+            ];
+            
+            console.log('Background: Returning demo forms:', demoForms);
+            
+            // Cache the forms locally
+            await chrome.storage.local.set({
+                schemeGenieForms: demoForms,
+                lastSync: Date.now()
+            });
+            
+            return { success: true, data: demoForms };
         } catch (error) {
             return { success: false, error: error.message };
         }

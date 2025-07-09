@@ -1,9 +1,16 @@
 // SchemeGenie Extension Popup Script with Firebase Integration
+
 class SchemeGeniePopup {
     constructor() {
-        this.currentUser = null;
+        // Always use demo account - no login needed
+        this.currentUser = {
+            id: 'demo-user-123',
+            email: 'demo@schemegenie.com',
+            name: 'John Demo Student',
+            country: 'IN'
+        };
         this.savedForms = [];
-        this.isConnected = false;
+        this.isConnected = true; // Always connected
         this.currentTab = null;
         this.fillingInProgress = false;
         this.websiteUrl = 'https://schemegenie.netlify.app';
@@ -13,7 +20,7 @@ class SchemeGeniePopup {
 
     async init() {
         await this.getCurrentTab();
-        await this.checkConnection();
+        await this.initializeFirebase();
         this.setupEventListeners();
         this.updateUI();
     }
@@ -27,155 +34,80 @@ class SchemeGeniePopup {
         }
     }
 
-    async checkConnection() {
+    async initializeFirebase() {
         try {
-            // First check local storage
-            let userData = await this.getStoredUserData();
+            console.log('Extension: Initializing with demo account (Firebase removed for security)...');
             
-            // If no local data, try to sync from website
-            if (!userData) {
-                await this.syncFromWebsite();
-                userData = await this.getStoredUserData();
-            }
+            // Always load demo forms
+            await this.loadUserForms();
             
-            if (userData && (userData.token || userData.id)) {
-                // Verify user data is valid
-                const isValid = userData.id ? true : await this.verifyFirebaseToken(userData.token);
-                
-                if (isValid) {
-                    this.currentUser = userData;
-                    this.isConnected = true;
-                    await this.loadUserForms();
-                } else {
-                    // Token expired, clear storage
-                    await this.clearUserData();
-                }
-            }
+            console.log('Extension: Demo account ready with forms');
         } catch (error) {
-            console.error('Connection check failed:', error);
-            this.showError('Connection failed. Please try again.');
+            console.error('Demo initialization failed:', error);
+            await this.loadDemoForms();
         }
     }
     
-    async syncFromWebsite() {
-        try {
-            // Try to get user data from the website's localStorage
-            const tabs = await chrome.tabs.query({url: "https://schemegenie.netlify.app/*"});
-            
-            if (tabs.length > 0) {
-                const results = await chrome.scripting.executeScript({
-                    target: { tabId: tabs[0].id },
-                    func: () => {
-                        // Try to get Firebase auth data
-                        const firebaseAuth = localStorage.getItem('firebase:authUser:AIzaSyCZmv4R5JsQkTG3jaLH1AlUdZzWByC539s:[DEFAULT]');
-                        if (firebaseAuth) {
-                            const authData = JSON.parse(firebaseAuth);
-                            return {
-                                id: authData.uid,
-                                email: authData.email,
-                                name: authData.displayName || authData.email,
-                                token: authData.accessToken
-                            };
-                        }
-                        return null;
-                    }
-                });
-                
-                if (results && results[0] && results[0].result) {
-                    await this.saveUserData(results[0].result);
+    async loadDemoForms() {
+        console.log('Extension: Loading demo forms...');
+        this.savedForms = [
+            {
+                id: 'nmms-2024',
+                name: 'National Means-cum-Merit Scholarship',
+                type: 'education',
+                status: 'approved',
+                completeness: 100,
+                lastUpdated: new Date().toISOString(),
+                formData: {
+                    fullName: 'John Demo Student',
+                    email: 'demo@schemegenie.com',
+                    phone: '+91-9876543210',
+                    dateOfBirth: '2002-05-15',
+                    gender: 'male',
+                    fatherName: 'Robert Demo',
+                    motherName: 'Mary Demo',
+                    address: '123 Demo Street, Bangalore',
+                    state: 'Karnataka',
+                    district: 'Bangalore Urban',
+                    pincode: '560001',
+                    income: '25000',
+                    category: 'General',
+                    class: '12th',
+                    school: 'Demo High School',
+                    percentage: '92.5',
+                    bankAccount: '1234567890',
+                    ifscCode: 'SBIN0001234'
+                }
+            },
+            {
+                id: 'pmrf-2024',
+                name: 'Prime Minister Research Fellowship',
+                type: 'research',
+                status: 'approved',
+                completeness: 95,
+                lastUpdated: new Date().toISOString(),
+                formData: {
+                    fullName: 'John Demo Student',
+                    email: 'demo@schemegenie.com',
+                    phone: '+91-9876543210',
+                    education: 'Bachelor of Engineering',
+                    university: 'Demo Institute of Technology',
+                    cgpa: '9.2',
+                    researchArea: 'Artificial Intelligence'
                 }
             }
-        } catch (error) {
-            console.log('Could not sync from website:', error);
-        }
-    }
-
-    async getStoredUserData() {
-        return new Promise((resolve) => {
-            chrome.storage.local.get(['schemeGenieUser'], (result) => {
-                resolve(result.schemeGenieUser || null);
-            });
-        });
-    }
-
-    async verifyFirebaseToken(token) {
-        try {
-            // In a real implementation, this would verify the Firebase token
-            // For now, we'll simulate verification
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(true); // Simulate successful verification
-                }, 500);
-            });
-        } catch (error) {
-            return false;
-        }
+        ];
     }
 
     async loadUserForms() {
         try {
-            // Try to get forms from Firebase
-            const formsData = await this.fetchUserFormsFromFirebase();
+            console.log('Extension: Loading demo forms...');
             
-            if (formsData && formsData.length > 0) {
-                this.savedForms = formsData;
-            } else {
-                // Fallback to sample data
-                this.savedForms = [
-                    {
-                        id: 'nmms-2024',
-                        name: 'National Means-cum-Merit Scholarship',
-                        type: 'education',
-                        status: 'approved',
-                        completeness: 95,
-                        lastUpdated: new Date().toISOString(),
-                        formData: {
-                            fullName: this.currentUser?.name || 'John Doe',
-                            email: this.currentUser?.email || 'john@example.com',
-                            phone: '+91-9876543210',
-                            age: '20',
-                            income: '150000'
-                        }
-                    },
-                    {
-                        id: 'pmrf-2024',
-                        name: 'Prime Minister Research Fellowship',
-                        type: 'research',
-                        status: 'approved',
-                        completeness: 88,
-                        lastUpdated: new Date().toISOString(),
-                        formData: {
-                            fullName: this.currentUser?.name || 'John Doe',
-                            email: this.currentUser?.email || 'john@example.com',
-                            education: 'Masters',
-                            researchArea: 'Computer Science'
-                        }
-                    }
-                ];
-            }
-
-            // Simulate user data if not available
-            if (!this.currentUser.name) {
-                this.currentUser = {
-                    ...this.currentUser,
-                    name: 'John Doe',
-                    email: 'john.doe@example.com',
-                    applicationsCount: this.savedForms.length
-                };
-            }
+            // Always use demo forms for security
+            await this.loadDemoForms();
         } catch (error) {
             console.error('Failed to load user forms:', error);
-        }
-    }
-
-    async fetchUserFormsFromFirebase() {
-        try {
-            // This would connect to your Firebase and fetch approved applications
-            // For now, return null to use fallback data
-            return null;
-        } catch (error) {
-            console.error('Firebase fetch error:', error);
-            return null;
+            await this.loadDemoForms();
         }
     }
 
@@ -183,57 +115,37 @@ class SchemeGeniePopup {
         // Login button
         const loginBtn = document.getElementById('loginBtn');
         if (loginBtn) {
-            loginBtn.addEventListener('click', () => this.handleLogin());
+            loginBtn.addEventListener('click', () => this.handleRefresh());
         }
 
-        // Refresh button
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.handleRefresh());
-        }
-
-        // Dashboard button
-        const dashboardBtn = document.getElementById('dashboardBtn');
-        if (dashboardBtn) {
-            dashboardBtn.addEventListener('click', () => this.openDashboard());
-        }
-
-        // Stop filling button
-        const stopFillingBtn = document.getElementById('stopFillingBtn');
-        if (stopFillingBtn) {
-            stopFillingBtn.addEventListener('click', () => this.stopFilling());
-        }
-
-        // Retry button
-        const retryBtn = document.getElementById('retryBtn');
-        if (retryBtn) {
-            retryBtn.addEventListener('click', () => this.handleRetry());
-        }
-
-        // Footer links
-        const helpLink = document.getElementById('helpLink');
-        if (helpLink) {
-            helpLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.openHelp();
-            });
-        }
-
-        const logoutLink = document.getElementById('logoutLink');
-        if (logoutLink) {
-            logoutLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-            });
-        }
+        // Setup all button listeners
+        this.setupButtonListeners();
     }
+    
+    setupButtonListeners() {
+        const buttons = [
+            { id: 'refreshBtn', handler: () => this.handleRefresh() },
+            { id: 'dashboardBtn', handler: () => this.openDashboard() },
+            { id: 'stopFillingBtn', handler: () => this.stopFilling() },
+            { id: 'retryBtn', handler: () => this.handleRetry() },
+            { id: 'helpLink', handler: () => this.openHelp() }
+        ];
+        
+        buttons.forEach(({ id, handler }) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('click', handler);
+            }
+        });
+    }
+
+
+
 
     updateUI() {
         this.updateStatus();
         
-        if (!this.isConnected) {
-            this.showLoginState();
-        } else if (this.fillingInProgress) {
+        if (this.fillingInProgress) { 
             this.showFillingState();
         } else {
             this.showConnectedState();
@@ -253,15 +165,6 @@ class SchemeGeniePopup {
         } else {
             statusDot.className = 'status-dot error';
             statusText.textContent = 'Not Connected';
-        }
-    }
-
-    showLoginState() {
-        this.hideAllStates();
-        const loginState = document.getElementById('loginState');
-        if (loginState) {
-            loginState.style.display = 'block';
-            loginState.classList.add('fade-in');
         }
     }
 
@@ -301,7 +204,7 @@ class SchemeGeniePopup {
     }
 
     hideAllStates() {
-        const states = ['loginState', 'connectedState', 'fillingState', 'errorState'];
+        const states = ['connectedState', 'fillingState', 'errorState'];
         states.forEach(stateId => {
             const element = document.getElementById(stateId);
             if (element) {
@@ -404,6 +307,8 @@ class SchemeGeniePopup {
 
     isGovernmentSite(url) {
         const govDomains = [
+            'localhost',
+            '127.0.0.1',
             '.gov',
             '.gov.in',
             'scholarships.gov.in',
@@ -414,48 +319,15 @@ class SchemeGeniePopup {
         return govDomains.some(domain => url.includes(domain));
     }
 
-    async handleLogin() {
-        try {
-            // Open SchemeGenie login page
-            const schemeGenieUrl = 'https://schemegenie.netlify.app/';
-            await chrome.tabs.create({ url: schemeGenieUrl });
-            
-            // Show instructions
-            this.showLoginInstructions();
-        } catch (error) {
-            console.error('Login failed:', error);
-            this.showError('Failed to open login page');
-        }
-    }
-
-    showLoginInstructions() {
-        // Update the login state to show instructions
-        const loginState = document.getElementById('loginState');
-        if (loginState) {
-            loginState.innerHTML = `
-                <div class="state-icon">🔗</div>
-                <h2 class="state-title">Login in Progress</h2>
-                <p class="state-description">
-                    Please login to SchemeGenie in the new tab, then click refresh here.
-                </p>
-                <button class="btn btn-primary" onclick="popup.handleRefresh()">
-                    <span class="btn-icon">🔄</span>
-                    Check Login Status
-                </button>
-            `;
-        }
-    }
-
     async handleRefresh() {
         try {
-            await this.checkConnection();
-            if (this.isConnected) {
-                await this.loadUserForms();
-            }
+            console.log('Popup: Refreshing extension data...');
+            await this.initializeFirebase();
+            await this.loadUserForms();
             this.updateUI();
+            this.showSuccess('Extension refreshed with latest data!');
         } catch (error) {
             console.error('Refresh failed:', error);
-            this.showError('Failed to refresh data');
         }
     }
 
@@ -470,6 +342,8 @@ class SchemeGeniePopup {
 
     async fillForm(formId) {
         try {
+            console.log('Popup: Starting form fill for:', formId);
+            
             if (!this.currentTab) {
                 this.showError('No active tab found');
                 return;
@@ -488,14 +362,17 @@ class SchemeGeniePopup {
 
             // Start filling process
             this.fillingInProgress = true;
+            console.log('Popup: Sending message to content script with data:', form.formData);
             this.updateUI();
 
             // Send message to content script to start filling
-            await chrome.tabs.sendMessage(this.currentTab.id, {
+            const response = await chrome.tabs.sendMessage(this.currentTab.id, {
                 action: 'fillForm',
                 formId: formId,
                 formData: form.formData
             });
+            
+            console.log('Popup: Content script response:', response);
 
             // Simulate filling progress
             this.simulateFillingProgress(form);
@@ -503,7 +380,13 @@ class SchemeGeniePopup {
         } catch (error) {
             console.error('Form filling failed:', error);
             this.fillingInProgress = false;
-            this.showError('Failed to fill form. Make sure you\'re on a supported government website.');
+            
+            // More specific error messages
+            if (error.message.includes('Could not establish connection')) {
+                this.showError('Please refresh the page and try again. The extension needs to reload on this page.');
+            } else {
+                this.showError('Failed to fill form. Make sure you\'re on a supported government website.');
+            }
         }
     }
 
@@ -570,32 +453,21 @@ class SchemeGeniePopup {
     }
 
     async handleRetry() {
-        await this.checkConnection();
+        await this.initializeFirebase();
         this.updateUI();
     }
 
     async handleLogout() {
         try {
-            await this.clearUserData();
-            this.currentUser = null;
-            this.savedForms = [];
-            this.isConnected = false;
-            this.updateUI();
+            // Refresh instead of logout
+            await this.handleRefresh();
         } catch (error) {
-            console.error('Logout failed:', error);
+            console.error('Refresh failed:', error);
         }
     }
 
-    async clearUserData() {
-        return new Promise((resolve) => {
-            chrome.storage.local.remove(['schemeGenieUser'], () => {
-                resolve();
-            });
-        });
-    }
-
     openHelp() {
-        const helpUrl = 'https://schemegenie.netlify.app/';
+        const helpUrl = 'http://localhost:5173/extension-demo.html';
         chrome.tabs.create({ url: helpUrl });
     }
 
@@ -628,6 +500,7 @@ class SchemeGeniePopup {
 
 // Initialize popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Extension popup loaded - initializing demo mode');
     window.popup = new SchemeGeniePopup();
 });
 

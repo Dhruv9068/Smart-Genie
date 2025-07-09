@@ -29,15 +29,16 @@
         <div class="main-content" id="mainContent">
             <!-- Login Required State -->
             <div class="state-container" id="loginState" style="display: none;">
-                <div class="state-icon">🔐</div>
-                <h2 class="state-title">Login Required</h2>
+                <div class="state-icon">⚡</div>
+                <h2 class="state-title">Initializing...</h2>
                 <p class="state-description">
-                    Connect to your SchemeGenie account to access your saved application data
+                    Connecting to Firebase and loading your forms...
                 </p>
-                <button class="btn btn-primary" id="loginBtn">
-                    <span class="btn-icon">🚀</span>
-                    Login to SchemeGenie
-                </button>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 text-left">
+                    <p class="text-xs text-orange-700">• Direct Firebase connection</p>
+                    <p class="text-xs text-orange-700">• No login required</p>
+                    <p class="text-xs text-orange-700">• Auto-loads approved forms</p>
+                </div>
             </div>
 
             <!-- Connected State -->
@@ -142,11 +143,11 @@
         <!-- Footer -->
         <div class="footer">
             <div class="footer-links">
-                <a href="#" class="footer-link" id="helpLink">Help</a>
-                <a href="#" class="footer-link" id="settingsLink">Settings</a>
-                <a href="#" class="footer-link" id="logoutLink">Logout</a>
+                <a href="#" class="footer-link" id="helpLink">Demo Form</a>
+                <a href="#" class="footer-link" id="refreshBtn">Refresh</a>
+                <a href="#" class="footer-link" id="dashboardBtn">Dashboard</a>
             </div>
-            <div class="footer-version">v1.0.0</div>
+            <div class="footer-version">v1.0.0 - Firebase Direct</div>
         </div>
     </div>
 

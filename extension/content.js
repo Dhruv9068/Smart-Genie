@@ -7,6 +7,7 @@ class SchemeGenieFormFiller {
         this.totalFields = 0;
         this.fillingStopped = false;
         
+        console.log('SchemeGenie Content Script: Initializing...');
         this.init();
     }
 
@@ -14,12 +15,16 @@ class SchemeGenieFormFiller {
         this.setupMessageListener();
         this.detectForms();
         this.addSchemeGenieIndicator();
+        console.log('SchemeGenie Content Script: Ready on', window.location.href);
     }
 
     setupMessageListener() {
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            console.log('Content Script: Received message:', message);
+            
             switch (message.action) {
                 case 'fillForm':
+                    console.log('Content Script: Starting form fill with data:', message.formData);
                     this.startFormFilling(message.formId, message.formData);
                     sendResponse({ success: true });
                     break;
@@ -34,6 +39,7 @@ class SchemeGenieFormFiller {
                 default:
                     sendResponse({ success: false, error: 'Unknown action' });
             }
+            return true; // Keep message channel open for async response
         });
     }
 
@@ -48,6 +54,7 @@ class SchemeGenieFormFiller {
             }
         });
 
+        console.log('Content Script: Detected forms:', detectedForms);
         return detectedForms;
     }
 
@@ -115,20 +122,20 @@ class SchemeGenieFormFiller {
 
         // Check URL patterns for government sites
         const url = window.location.href.toLowerCase();
-        if (url.includes('.gov') || url.includes('scholarship') || url.includes('benefit')) {
+        if (url.includes('.gov') || url.includes('scholarship') || url.includes('benefit') || url.includes('localhost') || url.includes('127.0.0.1')) {
             formInfo.confidence += 30;
         }
 
-        formInfo.isGovernmentForm = formInfo.confidence >= 40;
+        formInfo.isGovernmentForm = formInfo.confidence >= 20; // Lower threshold for demo
         
         return formInfo;
     }
 
     isPersonalInfoField(name, id, placeholder, label) {
         const personalPatterns = [
-            'name', 'fname', 'lname', 'firstname', 'lastname',
+            'name', 'fname', 'lname', 'firstname', 'lastname', 'fullname',
             'email', 'phone', 'mobile', 'address', 'city',
-            'state', 'pincode', 'zip', 'dob', 'birth',
+            'state', 'pincode', 'zip', 'dob', 'birth', 'dateofbirth',
             'gender', 'father', 'mother', 'guardian'
         ];
         
@@ -140,7 +147,7 @@ class SchemeGenieFormFiller {
         const educationPatterns = [
             'education', 'qualification', 'degree', 'school',
             'college', 'university', 'marks', 'percentage',
-            'grade', 'class', 'course', 'subject', 'board'
+            'grade', 'class', 'course', 'subject', 'board', 'cgpa'
         ];
         
         const text = `${name} ${id} ${placeholder} ${label}`;
@@ -161,7 +168,7 @@ class SchemeGenieFormFiller {
     isDocumentField(name, id, placeholder, label) {
         const documentPatterns = [
             'document', 'certificate', 'upload', 'file',
-            'attachment', 'proof', 'copy', 'scan'
+            'attachment', 'proof', 'copy', 'scan', 'bank', 'ifsc'
         ];
         
         const text = `${name} ${id} ${placeholder} ${label}`;
@@ -194,20 +201,41 @@ class SchemeGenieFormFiller {
 
     async startFormFilling(formId, formData) {
         try {
+            console.log('Content Script: Starting form filling process...');
             this.isActive = true;
             this.fillingStopped = false;
             this.currentFormData = formData;
             
-            // Find the best matching form
-            const detectedForms = this.detectForms();
-            const targetForm = this.selectBestForm(detectedForms, formId);
+            // Show loading message
+            this.showMessage('🧞‍♂️ SchemeGenie is filling the form...', '#f97316');
             
-            if (!targetForm) {
-                throw new Error('No suitable form found on this page');
+            // Find all fillable fields
+            const allFields = document.querySelectorAll('input, select, textarea');
+            console.log('Content Script: Found', allFields.length, 'fields to process');
+            
+            this.totalFields = allFields.length;
+            this.filledFields = 0;
+
+            // Fill fields with delay for visual effect
+            for (let i = 0; i < allFields.length; i++) {
+                if (this.fillingStopped) break;
+                
+                const field = allFields[i];
+                const value = this.getValueForField(field, formData);
+                
+                if (value) {
+                    await this.fillField(field, value);
+                    this.filledFields++;
+                    console.log(`Content Script: Filled field ${field.name || field.id} with value:`, value);
+                    
+                    // Add visual feedback
+                    this.highlightField(field);
+                    
+                    // Small delay for better UX
+                    await this.delay(300);
+                }
             }
 
-            await this.fillFormFields(targetForm, formData);
-            
             this.showSuccessMessage();
             this.notifyPopup('fillingComplete');
             
@@ -220,46 +248,19 @@ class SchemeGenieFormFiller {
         }
     }
 
-    selectBestForm(detectedForms, formId) {
-        if (detectedForms.length === 0) return null;
-        
-        // Sort by confidence and return the best match
-        detectedForms.sort((a, b) => b.confidence - a.confidence);
-        return detectedForms[0];
-    }
-
-    async fillFormFields(formInfo, userData) {
-        this.totalFields = formInfo.fields.length;
-        this.filledFields = 0;
-
-        for (const field of formInfo.fields) {
-            if (this.fillingStopped) break;
-            
-            try {
-                const value = this.getValueForField(field, userData);
-                if (value) {
-                    await this.fillField(field.element, value);
-                    this.filledFields++;
-                    
-                    // Add visual feedback
-                    this.highlightField(field.element);
-                    
-                    // Small delay for better UX
-                    await this.delay(200);
-                }
-            } catch (error) {
-                console.warn('Failed to fill field:', field.name, error);
-            }
-        }
-    }
-
     getValueForField(field, userData) {
-        const { name, id, label, type } = field;
-        const searchText = `${name} ${id} ${label}`.toLowerCase();
+        const name = (field.name || '').toLowerCase();
+        const id = (field.id || '').toLowerCase();
+        const placeholder = (field.placeholder || '').toLowerCase();
+        const label = this.getFieldLabel(field)?.toLowerCase() || '';
+        const searchText = `${name} ${id} ${placeholder} ${label}`;
         
-        // Map common field patterns to user data
+        console.log('Content Script: Mapping field:', searchText, 'Type:', field.type);
+        
+        // Enhanced field mappings for better matching
         const fieldMappings = {
-            // Personal Information
+            // Personal Information - more comprehensive patterns
+            'fullname': userData.fullName || userData.name,
             'name': userData.fullName || userData.name,
             'fname': userData.firstName || userData.fullName?.split(' ')[0],
             'firstname': userData.firstName || userData.fullName?.split(' ')[0],
@@ -268,8 +269,11 @@ class SchemeGenieFormFiller {
             'email': userData.email,
             'phone': userData.phone,
             'mobile': userData.mobile || userData.phone,
+            'dateofbirth': userData.dateOfBirth || userData.dob,
             'dob': userData.dob || userData.dateOfBirth,
             'birth': userData.dob || userData.dateOfBirth,
+            'fathername': userData.fatherName || userData.father,
+            'mothername': userData.motherName || userData.mother,
             'gender': userData.gender,
             'father': userData.fatherName,
             'mother': userData.motherName,
@@ -277,49 +281,68 @@ class SchemeGenieFormFiller {
             'city': userData.city,
             'state': userData.state,
             'pincode': userData.pincode,
+            'district': userData.district || userData.city,
             'zip': userData.pincode,
             
-            // Education
+            // Education - enhanced patterns
             'education': userData.education,
             'qualification': userData.education,
             'school': userData.school,
             'college': userData.university || userData.college,
+            'class': userData.class || userData.currentClass,
             'university': userData.university,
             'course': userData.course,
             'marks': userData.marks,
             'percentage': userData.percentage,
             'cgpa': userData.cgpa,
             
-            // Financial
+            // Financial - enhanced patterns
+            'banknumber': userData.bankAccount || userData.accountNumber,
+            'bankaccount': userData.bankAccount || userData.accountNumber,
+            'account': userData.bankAccount,
+            'ifsc': userData.ifscCode || userData.ifsc,
+            'ifsccode': userData.ifscCode || userData.ifsc,
             'income': userData.income || userData.familyIncome || userData.annualIncome,
             'annual': userData.annualIncome || userData.income,
             'family': userData.familyIncome || userData.income,
             'salary': userData.annualIncome || userData.income,
             
-            // Banking
-            'account': userData.bankAccount,
-            'bank': userData.bankAccount,
-            'ifsc': userData.ifsc,
-            
-            // Other
-            'category': userData.category,
+            // Research specific fields
+            'researcharea': userData.researchArea,
             'research': userData.researchArea,
             'supervisor': userData.supervisor,
-            'publication': userData.publications,
-            'age': userData.age
+            'publications': userData.publications,
+            'experience': userData.experience,
+            'category': userData.category,
+            'age': userData.age,
+            
+            // Additional common fields
+            'yearofpassing': userData.yearOfPassing || '2024',
+            'awards': userData.awards,
+            'examscores': userData.examScores,
+            'preferredinstitute': userData.preferredInstitute,
+            'researchproposal': userData.researchProposal || 'Research proposal summary will be provided separately.'
         };
 
         // Find the best match
         for (const [pattern, value] of Object.entries(fieldMappings)) {
             if (searchText.includes(pattern) && value) {
-                return this.formatValueForField(value, type);
+                console.log('Content Script: Matched', pattern, 'with value:', value);
+                return this.formatValueForField(value, field.type);
             }
+        }
+
+        // Fallback for common field names
+        if (searchText.includes('name') && !searchText.includes('father') && !searchText.includes('mother')) {
+            return userData.fullName || userData.name;
         }
 
         return null;
     }
 
     formatValueForField(value, fieldType) {
+        if (!value || value === 'undefined') return null;
+        
         switch (fieldType) {
             case 'email':
                 return value.includes('@') ? value : null;
@@ -339,27 +362,33 @@ class SchemeGenieFormFiller {
     }
 
     async fillField(element, value) {
-        // Focus the element
-        element.focus();
-        
-        // Clear existing value
-        element.value = '';
-        
-        // Trigger input event to clear any validation
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-        
-        if (element.tagName === 'SELECT') {
-            // Handle select elements
-            this.selectOption(element, value);
-        } else {
-            // Handle input and textarea elements
-            element.value = value;
+        try {
+            // Focus the element
+            element.focus();
+            
+            // Clear existing value
+            element.value = '';
+            
+            // Trigger input event to clear any validation
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            if (element.tagName === 'SELECT') {
+                // Handle select elements
+                this.selectOption(element, value);
+            } else {
+                // Handle input and textarea elements
+                element.value = value;
+            }
+            
+            // Trigger change events
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.dispatchEvent(new Event('blur', { bubbles: true }));
+            
+            console.log('Content Script: Successfully filled field with value:', value);
+        } catch (error) {
+            console.error('Content Script: Error filling field:', error);
         }
-        
-        // Trigger change events
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-        element.dispatchEvent(new Event('change', { bubbles: true }));
-        element.dispatchEvent(new Event('blur', { bubbles: true }));
     }
 
     selectOption(selectElement, value) {
@@ -382,6 +411,7 @@ class SchemeGenieFormFiller {
         if (option) {
             selectElement.value = option.value;
             option.selected = true;
+            console.log('Content Script: Selected option:', option.text);
         }
     }
 
@@ -394,9 +424,32 @@ class SchemeGenieFormFiller {
             transition: all 0.3s ease !important;
         `;
         
+        // Add checkmark
+        const checkmark = document.createElement('div');
+        checkmark.innerHTML = '✓';
+        checkmark.style.cssText = `
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #10b981;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1000;
+        `;
+        
+        if (element.parentElement.style.position !== 'relative') {
+            element.parentElement.style.position = 'relative';
+        }
+        element.parentElement.appendChild(checkmark);
+        
         setTimeout(() => {
             element.style.cssText = originalStyle;
-        }, 1000);
+            if (checkmark.parentElement) {
+                checkmark.parentElement.removeChild(checkmark);
+            }
+        }, 2000);
     }
 
     stopFormFilling() {
@@ -443,7 +496,7 @@ class SchemeGenieFormFiller {
     }
 
     showSuccessMessage() {
-        this.showMessage('✅ Form filled successfully!', '#10b981');
+        this.showMessage('✅ Form filled successfully! ' + this.filledFields + ' fields completed.', '#10b981');
     }
 
     showErrorMessage(message) {
@@ -476,7 +529,9 @@ class SchemeGenieFormFiller {
         document.body.appendChild(message);
         
         setTimeout(() => {
-            message.remove();
+            if (message.parentElement) {
+                message.remove();
+            }
         }, 5000);
     }
 
