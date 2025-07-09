@@ -334,8 +334,23 @@ open http://localhost:5173/demo-form.html
 
 # Debug extension
 # Right-click extension → Inspect popup
-```
 
+
+```
+## Team Structure
+graph LR
+    A[Dhruv Chaturvedi<br>Team Leader<br>Full Stack + AI] --> B[Frontend Team]
+    A --> C[Backend Team]
+    A --> D[AI/ML Team]
+    
+    B --> F[React Developers]
+    B --> G[Garima<br>UI/UX Designer]
+
+    C --> H[Firebase Specialists]
+    C --> I[API Developers]
+
+    D --> J[Dhruv Chaturvedi<br>AI Engineer]
+    D --> K[Kushboo<br>Research + Wireframing + UI/UX]
 ---
 
 ## 🌍 Global Impact
@@ -422,19 +437,7 @@ git push origin feature/amazing-feature
 
 **Made with ❤️ by the SchemeGenie Team**
 
-graph LR
-    A[Dhruv Chaturvedi<br>Team Leader<br>Full Stack + AI] --> B[Frontend Team]
-    A --> C[Backend Team]
-    A --> D[AI/ML Team]
-    
-    B --> F[React Developers]
-    B --> G[Garima<br>UI/UX Designer]
 
-    C --> H[Firebase Specialists]
-    C --> I[API Developers]
-
-    D --> J[Dhruv Chaturvedi<br>AI Engineer]
-    D --> K[Kushboo<br>Research + Wireframing + UI/UX]
 
 *Transforming lives through AI-powered government benefit access*
 
