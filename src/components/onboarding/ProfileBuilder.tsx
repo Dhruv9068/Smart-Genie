@@ -143,13 +143,17 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
         income: parseInt(profile.income),
         familySize: parseInt(profile.familySize),
         disabilities: false,
-        gender: '',
+        
       });
       
       toast.success('Profile completed successfully!');
       
       // Small delay to ensure profile is saved
       await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Force a page reload to refresh the auth state
+      window.location.href = '/';
+      
       onComplete();
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -207,6 +211,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
             exit={{ opacity: 0, x: -20 }}
           >
             <div className="flex items-center mb-6">
+                    required
               <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-orange-200 flex items-center justify-center mr-3">
                 <currentStepData.icon className="h-5 w-5 text-orange-600" />
               </div>

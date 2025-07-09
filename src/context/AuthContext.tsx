@@ -71,6 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     try {
+      console.log('Updating profile for user:', user.id, 'with data:', profile);
+      
       await firebaseService.updateUserProfile(user.id, profile);
       
       // Update local user state immediately
@@ -84,6 +86,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       
       console.log('Profile updated successfully:', updatedUser);
+      
+      // Store updated user in localStorage for immediate access
+      localStorage.setItem('schemeGenie_user', JSON.stringify(updatedUser));
     } catch (error) {
       console.error('Profile update failed:', error);
       throw error;

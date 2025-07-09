@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Zap, Shield, Globe, Bot, FileText, Bell, Clock, AlertCircle } from 'lucide-react';
+import { ArrowRight, Zap, Bot, FileText, Bell, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { ExtensionBanner } from '../components/home/ExtensionBanner';
@@ -32,8 +32,8 @@ export const Home: React.FC = () => {
         <ProfileBuilder 
           interests={selectedInterests}
           onComplete={() => {
-            // Just set the step, the auth context will handle the rest
-            setOnboardingStep('complete');
+            // Profile completion will handle redirect
+            console.log('Profile completed, redirecting...');
           }}
           onBack={() => setOnboardingStep('interests')}
         />

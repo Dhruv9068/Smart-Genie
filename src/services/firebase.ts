@@ -93,11 +93,17 @@ export class FirebaseService {
 
   async updateUserProfile(userId: string, profile: Partial<UserProfile>): Promise<void> {
     try {
+      console.log('Firebase: Updating profile for user:', userId, 'with data:', profile);
+      
       const userRef = doc(db, 'users', userId);
       
       // Get current user data first
       const currentUserDoc = await getDoc(userRef);
       const currentUser = currentUserDoc.data();
+      
+      if (!currentUser) {
+        throw new Error('User document not found');
+      }
       
       // Merge with existing profile
       const updatedProfile = {
@@ -107,12 +113,19 @@ export class FirebaseService {
       };
       
       // Update the entire user document with new profile
-      await setDoc(userRef, { 
+      const updatedUserData = { 
         ...currentUser,
         profile: updatedProfile
-      }, { merge: true });
+      };
       
-      console.log('Profile updated successfully for user:', userId);
+      await setDoc(userRef, updatedUserData, { merge: true });
+      
+      console.log('Firebase: Profile updated successfully for user:', userId, 'New profile:', updatedProfile);
+      
+      // Verify the update by reading it back
+      const verifyDoc = await getDoc(userRef);
+      const verifiedData = verifyDoc.data();
+      console.log('Firebase: Verified updated user data:', verifiedData);
     } catch (error) {
       console.error('Update profile error:', error);
       throw error;
