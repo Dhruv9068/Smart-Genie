@@ -336,8 +336,9 @@ open http://localhost:5173/demo-form.html
 # Right-click extension → Inspect popup
 
 
-```
-## Team Structure
+## 🧠 Team Structure
+
+```mermaid
 graph LR
     A[Dhruv Chaturvedi<br>Team Leader<br>Full Stack + AI] --> B[Frontend Team]
     A --> C[Backend Team]
@@ -351,7 +352,7 @@ graph LR
 
     D --> J[Dhruv Chaturvedi<br>AI Engineer]
     D --> K[Kushboo<br>Research + Wireframing + UI/UX]
----
+
 
 ## 🌍 Global Impact
 
