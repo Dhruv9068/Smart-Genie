@@ -1,8 +1,9 @@
-export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyDTwdTJ1-yfb6PfVWK8D8eemjeuqO1XCzM';
+// API Configuration - All keys now loaded from environment variables
+export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 export const OPENROUTER_CONFIG = {
-  apiKey: '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',
+  apiKey: import.meta.env.VITE_OPENROUTER_API_KEY,
   baseURL: 'https://openrouter.ai/api/v1',
   model: 'openai/gpt-4o',
   siteUrl: 'https://schemegenie.netlify.app',
@@ -10,22 +11,22 @@ export const OPENROUTER_CONFIG = {
 };
 
 export const EMAILJS_CONFIG = {
-  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_3czmjnf',
-  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_a0o7x81',
-  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'XwPMmLzYZ3HVnMO07',
+  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
 };
 
-export const ELEVEN_LABS_API_KEY = import.meta.env.VITE_ELEVEN_LABS_API_KEY || 'sk_d86a8933358a4e3739162236d1da010a865d9c51cc10511c';
-export const ELEVEN_LABS_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; // Default voice
+export const ELEVEN_LABS_API_KEY = import.meta.env.VITE_ELEVEN_LABS_API_KEY;
+export const ELEVEN_LABS_VOICE_ID = import.meta.env.VITE_ELEVEN_LABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
 
 export const FIREBASE_CONFIG = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCZmv4R5JsQkTG3jaLH1AlUdZzWByC539s",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "scheme-genie-1982f.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "scheme-genie-1982f",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "scheme-genie-1982f.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "927689273758",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:927689273758:web:00bda652b2af6b8974e68f",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-94CTZC987F"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 export const REAL_INDIAN_SCHEMES_DATA = [
@@ -49,7 +50,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Bank account details',
       'Previous year mark sheets'
     ],
-    deadline: '2024-10-31',
     deadline: '2025-10-31',
     website: 'https://scholarships.gov.in',
     isActive: true,
@@ -81,7 +81,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Identity proof',
       'Category certificate (if applicable)'
     ],
-    deadline: '2024-12-15',
     deadline: '2025-12-15',
     website: 'https://pmrf.in',
     isActive: true,
@@ -113,7 +112,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Research proposal',
       'Supervisor recommendation'
     ],
-    deadline: '2024-11-30',
     deadline: '2025-11-30',
     website: 'https://csirhrdg.res.in',
     isActive: true,
@@ -145,7 +143,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Research proposal',
       'Medical certificate'
     ],
-    deadline: '2024-09-30',
     deadline: '2025-09-30',
     website: 'https://dbtindia.gov.in',
     isActive: true,
@@ -177,7 +174,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Supervisor details',
       'Institution affiliation proof'
     ],
-    deadline: '2024-08-31',
     deadline: '2025-08-31',
     website: 'https://aicte-india.org',
     isActive: true,
@@ -209,7 +205,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Admission proof',
       'Bank account details'
     ],
-    deadline: '2024-12-31',
     deadline: '2025-12-31',
     website: 'https://ssp.postmatric.karnataka.gov.in',
     isActive: true,
@@ -241,7 +236,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Bank account details',
       'Income certificate'
     ],
-    deadline: '2024-06-30',
     deadline: '2025-07-30',
     website: 'https://ssp.postmatric.karnataka.gov.in',
     isActive: true,
@@ -273,7 +267,6 @@ export const REAL_INDIAN_SCHEMES_DATA = [
       'Bank passbook',
       'Aadhaar card'
     ],
-    deadline: '2024-10-15',
     deadline: '2025-10-15',
     website: 'https://karepass.cgg.gov.in',
     isActive: true,

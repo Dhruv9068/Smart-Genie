@@ -1,9 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 import { FIREBASE_CONFIG, REAL_INDIAN_SCHEMES_DATA } from '../utils/constants';
-import { User as AppUser, Scheme, UserProfile } from '../utils/types';
+import { User as AppUser, Scheme, UserProfile, SchemeCategory } from '../utils/types';
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
@@ -94,7 +94,25 @@ export class FirebaseService {
   async updateUserProfile(userId: string, profile: Partial<UserProfile>): Promise<void> {
     try {
       const userRef = doc(db, 'users', userId);
-      await setDoc(userRef, { profile }, { merge: true });
+      
+      // Get current user data first
+      const currentUserDoc = await getDoc(userRef);
+      const currentUser = currentUserDoc.data();
+      
+      // Merge with existing profile
+      const updatedProfile = {
+        ...currentUser?.profile,
+        ...profile,
+        updatedAt: new Date()
+      };
+      
+      // Update the entire user document with new profile
+      await setDoc(userRef, { 
+        ...currentUser,
+        profile: updatedProfile
+      }, { merge: true });
+      
+      console.log('Profile updated successfully for user:', userId);
     } catch (error) {
       console.error('Update profile error:', error);
       throw error;
@@ -103,7 +121,11 @@ export class FirebaseService {
 
   // Schemes methods
   async getSchemes(country?: string, category?: string): Promise<Scheme[]> {
-    let schemes = [...REAL_INDIAN_SCHEMES_DATA] as Scheme[];
+    // Convert the data to proper Scheme type with correct category typing
+    let schemes: Scheme[] = REAL_INDIAN_SCHEMES_DATA.map(scheme => ({
+      ...scheme,
+      category: scheme.category as SchemeCategory
+    }));
     
     if (country) schemes = schemes.filter(scheme => scheme.country === country);
     if (category) schemes = schemes.filter(scheme => scheme.category === category);
@@ -113,21 +135,34 @@ export class FirebaseService {
 
   async getEligibleSchemes(userId: string): Promise<Scheme[]> {
     const userDoc = await getDoc(doc(db, 'users', userId));
-    if (!userDoc.exists()) return REAL_INDIAN_SCHEMES_DATA.slice(0, 5);
+    if (!userDoc.exists()) {
+      return REAL_INDIAN_SCHEMES_DATA.slice(0, 5).map(scheme => ({
+        ...scheme,
+        category: scheme.category as SchemeCategory
+      }));
+    }
     
     const { profile: userProfile, country } = userDoc.data();
-    if (!userProfile) return REAL_INDIAN_SCHEMES_DATA.slice(0, 5);
+    if (!userProfile) {
+      return REAL_INDIAN_SCHEMES_DATA.slice(0, 5).map(scheme => ({
+        ...scheme,
+        category: scheme.category as SchemeCategory
+      }));
+    }
     
-    return REAL_INDIAN_SCHEMES_DATA.filter(scheme => {
+    const eligibleSchemes = REAL_INDIAN_SCHEMES_DATA.filter(scheme => {
       if (userProfile.age <= 25 && scheme.category === 'education') return true;
       if (userProfile.age <= 35 && scheme.title.includes('Research')) return true;
       if (userProfile.income < 50000 && scheme.title.includes('Merit')) return true;
       if (userProfile.employment === 'student' && scheme.category === 'education') return true;
       if (country === 'IN') return true;
       return false;
-    }).slice(0, 8).map((scheme, index) => ({
+    }).slice(0, 8);
+
+    return eligibleSchemes.map((scheme, index) => ({
       ...scheme,
       id: `eligible-${scheme.id}-${index}`,
+      category: scheme.category as SchemeCategory,
       matchReason: this.getMatchReason(scheme, userProfile),
       priority: this.calculatePriority(scheme, userProfile)
     }));
@@ -179,6 +214,7 @@ export class FirebaseService {
     
     return {
       ...scheme,
+      category: scheme.category as SchemeCategory,
       detailedDescription: `${scheme.description}\n\nThis government scheme provides financial assistance to eligible candidates.`,
       applicationSteps: [
         'Check eligibility criteria',
@@ -218,7 +254,10 @@ export class FirebaseService {
         where('userId', '==', userId)
       );
       const querySnapshot = await getDocs(applicationsQuery);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return querySnapshot.docs.map(docSnapshot => ({ 
+        id: docSnapshot.id, 
+        ...docSnapshot.data() 
+      }));
     } catch (error) {
       console.error('Get user applications error:', error);
       return [];
@@ -256,8 +295,8 @@ export class FirebaseService {
       
       // Get full application details
       const approvedApps = [];
-      for (const doc of querySnapshot.docs) {
-        const approvedData = doc.data();
+      for (const docSnapshot of querySnapshot.docs) {
+        const approvedData = docSnapshot.data();
         const appDoc = await getDoc(doc(db, 'applications', approvedData.applicationId));
         if (appDoc.exists()) {
           approvedApps.push({
@@ -297,6 +336,32 @@ export class FirebaseService {
     }
   }
 
+  // Reminders methods (if needed in future)
+  async addReminder(reminder: any): Promise<void> {
+    try {
+      await setDoc(doc(db, 'reminders', reminder.id), reminder);
+    } catch (error) {
+      console.error('Add reminder error:', error);
+      throw error;
+    }
+  }
+
+  async getUserReminders(userId: string): Promise<any[]> {
+    try {
+      const remindersQuery = query(
+        collection(db, 'reminders'),
+        where('userId', '==', userId)
+      );
+      const querySnapshot = await getDocs(remindersQuery);
+      return querySnapshot.docs.map(docSnapshot => ({ 
+        id: docSnapshot.id, 
+        ...docSnapshot.data() 
+      }));
+    } catch (error) {
+      console.error('Get reminders error:', error);
+      return [];
+    }
+  }
 }
 
 export const firebaseService = new FirebaseService();

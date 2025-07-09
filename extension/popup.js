@@ -29,12 +29,18 @@ class SchemeGeniePopup {
 
     async checkConnection() {
         try {
-            // Check if user is logged in to SchemeGenie
-            const userData = await this.getStoredUserData();
+            // First check local storage
+            let userData = await this.getStoredUserData();
             
-            if (userData && userData.token) {
-                // Verify token with Firebase
-                const isValid = await this.verifyFirebaseToken(userData.token);
+            // If no local data, try to sync from website
+            if (!userData) {
+                await this.syncFromWebsite();
+                userData = await this.getStoredUserData();
+            }
+            
+            if (userData && (userData.token || userData.id)) {
+                // Verify user data is valid
+                const isValid = userData.id ? true : await this.verifyFirebaseToken(userData.token);
                 
                 if (isValid) {
                     this.currentUser = userData;
@@ -48,6 +54,39 @@ class SchemeGeniePopup {
         } catch (error) {
             console.error('Connection check failed:', error);
             this.showError('Connection failed. Please try again.');
+        }
+    }
+    
+    async syncFromWebsite() {
+        try {
+            // Try to get user data from the website's localStorage
+            const tabs = await chrome.tabs.query({url: "https://schemegenie.netlify.app/*"});
+            
+            if (tabs.length > 0) {
+                const results = await chrome.scripting.executeScript({
+                    target: { tabId: tabs[0].id },
+                    func: () => {
+                        // Try to get Firebase auth data
+                        const firebaseAuth = localStorage.getItem('firebase:authUser:AIzaSyCZmv4R5JsQkTG3jaLH1AlUdZzWByC539s:[DEFAULT]');
+                        if (firebaseAuth) {
+                            const authData = JSON.parse(firebaseAuth);
+                            return {
+                                id: authData.uid,
+                                email: authData.email,
+                                name: authData.displayName || authData.email,
+                                token: authData.accessToken
+                            };
+                        }
+                        return null;
+                    }
+                });
+                
+                if (results && results[0] && results[0].result) {
+                    await this.saveUserData(results[0].result);
+                }
+            }
+        } catch (error) {
+            console.log('Could not sync from website:', error);
         }
     }
 

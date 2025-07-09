@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Initialize Firebase auth listener
-    const unsubscribe = firebaseService.initAuthListener((user) => {
+    const unsubscribe = firebaseService.initAuthListener((user: User | null) => {
       setUser(user);
       setLoading(false);
     });
@@ -72,15 +72,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       await firebaseService.updateUserProfile(user.id, profile);
+      
+      // Update local user state immediately
       const updatedUser = { 
         ...user, 
         profile: { 
           ...user.profile, 
-          ...profile,
-          interests: profile.interests || user.profile?.interests
+          ...profile
         } 
       };
       setUser(updatedUser);
+      
+      console.log('Profile updated successfully:', updatedUser);
     } catch (error) {
       console.error('Profile update failed:', error);
       throw error;

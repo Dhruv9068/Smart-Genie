@@ -6,6 +6,7 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Card } from '../ui/Card';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 interface ProfileBuilderProps {
   interests: string[];
@@ -19,6 +20,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
   onBack 
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
     age: '',
     income: '',
@@ -125,6 +127,15 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
 
   const handleComplete = async () => {
     try {
+      setLoading(true);
+      
+      // Validate required fields
+      if (!profile.age || !profile.income || !profile.education || !profile.employment) {
+        toast.error('Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+      
       await updateProfile({
         ...profile,
         interests,
@@ -134,9 +145,17 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
         disabilities: false,
         gender: '',
       });
+      
+      toast.success('Profile completed successfully!');
+      
+      // Small delay to ensure profile is saved
+      await new Promise(resolve => setTimeout(resolve, 500));
       onComplete();
     } catch (error) {
       console.error('Failed to update profile:', error);
+      toast.error('Failed to save profile. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,6 +249,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
           <Button
             onClick={currentStep === 0 ? onBack : () => setCurrentStep(currentStep - 1)}
             variant="outline"
+            disabled={loading}
             className="flex items-center rounded-xl"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -239,6 +259,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
           <Button
             onClick={handleNext}
             disabled={!isStepValid()}
+            loading={loading}
             className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 flex items-center rounded-xl"
           >
             {currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}

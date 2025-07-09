@@ -87,13 +87,26 @@ class SchemeGenieBackground {
         // Listen for requests to SchemeGenie to detect login
         chrome.webRequest.onCompleted.addListener(
             (details) => {
-                if (details.url.includes('schemegenie.netlify.app') && 
-                    details.url.includes('dashboard')) {
+                if (details.url.includes('schemegenie.netlify.app')) {
                     // User might have logged in, trigger sync
-                    this.syncWithSchemeGenie();
+                    setTimeout(() => {
+                        this.syncWithSchemeGenie();
+                    }, 2000);
                 }
             },
             { urls: ["https://schemegenie.netlify.app/*"] }
+        );
+        
+        // Also listen for Firebase auth changes
+        chrome.webRequest.onCompleted.addListener(
+            (details) => {
+                if (details.url.includes('firebase') && details.url.includes('auth')) {
+                    setTimeout(() => {
+                        this.syncWithSchemeGenie();
+                    }, 1000);
+                }
+            },
+            { urls: ["https://*.googleapis.com/*", "https://*.firebaseapp.com/*"] }
         );
     }
 
