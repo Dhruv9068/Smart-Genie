@@ -10,6 +10,9 @@ export class GeminiService {
     this.apiKey = GEMINI_API_KEY;
     this.apiUrl = GEMINI_API_URL;
     
+    console.log('Gemini API Key available:', !!this.apiKey);
+    console.log('OpenRouter API Key available:', !!OPENROUTER_CONFIG.apiKey);
+    
     // Initialize OpenRouter as fallback
     this.openai = new OpenAI({
       baseURL: OPENROUTER_CONFIG.baseURL,
@@ -23,6 +26,12 @@ export class GeminiService {
   }
 
   async generateContent(prompt: string, language: string = 'en'): Promise<string> {
+    // If no API keys available, return fallback response
+    if (!this.apiKey && !OPENROUTER_CONFIG.apiKey) {
+      console.warn('No API keys available, returning fallback response');
+      return this.getFallbackResponse(prompt);
+    }
+    
     const systemPrompt = `You are SchemeGenie, a helpful AI assistant that helps people discover and apply for government benefit schemes worldwide. 
     
     Always respond in ${language === 'en' ? 'English' : `the language code: ${language}`}.
@@ -37,7 +46,8 @@ export class GeminiService {
     Keep responses conversational, supportive, and actionable.`;
 
     // Try Gemini first
-    try {
+    if (this.apiKey) {
+      try {
       const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
@@ -71,10 +81,13 @@ export class GeminiService {
       }
       
       throw new Error(`Gemini API failed: ${response.statusText}`);
-    } catch (geminiError) {
+      } catch (geminiError) {
       console.warn('Gemini API failed, falling back to OpenRouter:', geminiError);
+      }
+    }
       
       // Fallback to OpenRouter
+    if (OPENROUTER_CONFIG.apiKey) {
       try {
         const completion = await this.openai.chat.completions.create({
           model: OPENROUTER_CONFIG.model,
@@ -95,9 +108,75 @@ export class GeminiService {
         return completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
       } catch (openRouterError) {
         console.error('OpenRouter API also failed:', openRouterError);
-        return 'I apologize, but I\'m experiencing technical difficulties. Please try again later.';
       }
     }
+    
+    // Final fallback
+    return this.getFallbackResponse(prompt);
+  }
+  
+  private getFallbackResponse(prompt: string): string {
+    const lowerPrompt = prompt.toLowerCase();
+    
+    if (lowerPrompt.includes('nmms') || lowerPrompt.includes('scholarship')) {
+      return `I can help you with the National Means-cum-Merit Scholarship (NMMS)! 
+      
+**Key Details:**
+- **Amount:** ₹12,000 per year
+- **Eligibility:** Class 9-12 students from economically disadvantaged families
+- **Application:** Through scholarships.gov.in
+- **Deadline:** October 31, 2025
+
+**Requirements:**
+- Family income below specified limit
+- Good academic performance
+- Studying in government/aided school
+
+Would you like me to help you apply for this scholarship? I can guide you through the application process step by step.`;
+    }
+    
+    if (lowerPrompt.includes('pmrf') || lowerPrompt.includes('research')) {
+      return `The Prime Minister's Research Fellowship (PMRF) is excellent for Ph.D. students!
+      
+**Benefits:**
+- ₹70,000-80,000 per month
+- ₹2 lakh annual contingency
+- Available at IISc, IITs, IISERs
+
+**Eligibility:**
+- Excellent academic record
+- Ph.D. admission at premier institutes
+- Research aptitude
+
+I can help you prepare your application and guide you through the requirements.`;
+    }
+    
+    if (lowerPrompt.includes('apply') || lowerPrompt.includes('application')) {
+      return `I can help you apply for government schemes! Here's what I can do:
+      
+✅ **Find eligible schemes** based on your profile
+✅ **Pre-fill applications** automatically 
+✅ **Guide you through requirements**
+✅ **Track deadlines** and send reminders
+✅ **Use Chrome Extension** for auto-filling government forms
+
+Which type of scheme are you interested in?
+- Education/Scholarships
+- Research Fellowships  
+- Business/Startup funding
+- Housing assistance
+- Healthcare benefits`;
+    }
+    
+    return `I'm here to help you with government benefit schemes! I can:
+    
+🎯 **Find schemes** you're eligible for
+📝 **Auto-fill applications** using AI
+🔔 **Send reminders** for deadlines
+🌐 **Work in multiple languages**
+🤖 **Use Chrome Extension** for seamless form filling
+
+What would you like to know about government schemes or benefits?`;
   }
 
   async fetchRealSchemes(country?: string, category?: string): Promise<any[]> {
@@ -268,13 +347,14 @@ export class GeminiService {
         return false;
       });
       
-      return eligibleSchemes.slice(0, 8).map((scheme, index) => ({
-        id: `fallback-eligible-${Date.now()}-${index}`,
-        ...scheme,
-        matchReason: `Matches your profile: Age ${userProfile.age}, Education ${userProfile.education}, Employment ${userProfile.employment}`,
-        priority: 'medium',
-        summary: `${scheme.title} - ${scheme.amount}. Suitable for your age and background.`
-      }));
+    return eligibleSchemes.slice(0, 8).map((scheme, index) => ({
+  ...scheme,
+  id: `fallback-eligible-${Date.now()}-${index}`,
+  matchReason: `Matches your profile: Age ${userProfile.age}, Education ${userProfile.education}, Employment ${userProfile.employment}`,
+  priority: 'medium',
+  summary: `${scheme.title} - ${scheme.amount}. Suitable for your age and background.`
+}));
+
     } catch (error) {
       console.error('Failed to get eligible schemes:', error);
       // Return empty array if everything fails

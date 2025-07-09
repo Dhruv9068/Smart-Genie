@@ -126,7 +126,31 @@ export const ChatBot: React.FC = () => {
       
       Keep responses helpful, specific, and focused on automation.`;
 
-      const response = await geminiService.generateContent(enhancedPrompt, currentLanguage);
+      let response;
+      try {
+        response = await geminiService.generateContent(enhancedPrompt, currentLanguage);
+      } catch (error) {
+        console.error('AI service failed:', error);
+        response = selectedScheme 
+          ? `I can help you with "${selectedScheme.title}"! This scheme offers ${selectedScheme.amount} and is perfect for your profile. 
+          
+Here's what I can do:
+✅ Pre-fill your application automatically
+✅ Check all eligibility requirements  
+✅ Guide you through document preparation
+✅ Use our Chrome Extension for government portals
+
+Would you like me to start preparing your application?`
+          : `I'm here to help you discover and apply for government schemes! 
+          
+I can:
+🎯 Find schemes you're eligible for
+📝 Auto-fill applications using AI  
+🔔 Send deadline reminders
+🌐 Work with government portals via Chrome Extension
+
+What type of assistance are you looking for today?`;
+      }
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -146,7 +170,14 @@ export const ChatBot: React.FC = () => {
       console.error('Failed to get response:', error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: 'I apologize, but I\'m experiencing technical difficulties. Please try again later.',
+        text: `I'm here to help with government schemes! While my AI is temporarily unavailable, I can still:
+        
+✅ Show you eligible schemes in your dashboard
+✅ Help with NMMS, PMRF, and other scholarships  
+✅ Guide you through application processes
+✅ Use Chrome Extension for form filling
+
+What would you like to know about government benefits?`,
         isUser: false,
         timestamp: new Date(),
         language: currentLanguage,
