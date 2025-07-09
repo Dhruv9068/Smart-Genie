@@ -334,9 +334,9 @@ export const Home: React.FC = () => {
                   }
                 }}
                 size="lg"
-                className="text-lg px-8 py-4 bg-white text-orange-600 hover:bg-orange-50 shadow-lg rounded-xl font-semibold"
+                className="text-lg px-8 py-4 bg-white text-orange-400 hover:bg-black shadow-lg rounded-xl font-semibold"
               >
-                <span className="text-orange-600">{!user ? 'Start Automating Now' : 'Open AI Assistant'}</span>
+                <span className="text-white">{!user ? 'Start Automating Now' : 'Open AI Assistant'}</span>
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
