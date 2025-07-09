@@ -353,7 +353,7 @@ graph LR
     D --> J[Dhruv Chaturvedi<br>AI Engineer]
     D --> K[Kushboo<br>Research + Wireframing + UI/UX]
 
-
+```
 ## 🌍 Global Impact
 
 ### **Supported Countries**
