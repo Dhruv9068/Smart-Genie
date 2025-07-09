@@ -34,7 +34,7 @@ export const ExtensionBanner: React.FC = () => {
 
           <div className="flex flex-col items-center space-y-4">
             <Button
-              onClick={() => window.open('https://your-site.com/schemegenie_extension.zip', '_blank')}
+              onClick={() => window.open('https://github.com/Dhruv9068/Smart-Genie/tree/main/extension', '_blank')}
               size="lg"
               className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 text-lg shadow-lg flex items-center space-x-3 rounded-xl"
             >
