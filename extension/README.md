@@ -49,7 +49,7 @@ A powerful Chrome extension that automatically fills government benefit applicat
 
 ## Support
 
-For help and support, visit: https://scheme-genie-1982f.firebaseapp.com/
+For help and support, visit: https://schemegenie.netlify.app/
 
 ## Version
 

@@ -148,14 +148,14 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid">
+    <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid grid-hover-effect">
       <div className="max-w-2xl mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-lg border-2 border-orange-200 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg border-2 border-orange-200 flex items-center justify-center">
             <img src="/Logo.png" alt="SchemeGenie" className="w-10 h-10 p-1" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -180,7 +180,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
           </div>
         </div>
 
-        <Card className="p-8">
+        <Card className="p-8 card-hover-shine">
           <motion.div
             key={currentStep}
             initial={{ opacity: 0, x: 20 }}
@@ -188,8 +188,8 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
             exit={{ opacity: 0, x: -20 }}
           >
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
-                <currentStepData.icon className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-orange-200 flex items-center justify-center mr-3">
+                <currentStepData.icon className="h-5 w-5 text-orange-600" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900">
                 {currentStepData.title}
@@ -199,14 +199,16 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
             <div className="space-y-6">
               {currentStepData.fields.map((field) => (
                 <div key={field.name} className="relative">
-                  <field.icon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-white rounded-full border border-orange-200 flex items-center justify-center z-10">
+                    <field.icon className="h-3 w-3 text-orange-600" />
+                  </div>
                   {field.type === 'select' ? (
                     <Select
                       label={field.label}
                       value={profile[field.name as keyof typeof profile]}
                       onChange={(e) => setProfile(prev => ({ ...prev, [field.name]: e.target.value }))}
                       options={field.options || []}
-                      className="pl-10"
+                      className="pl-12"
                     />
                   ) : (
                     <Input
@@ -215,7 +217,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
                       placeholder={field.placeholder}
                       value={profile[field.name as keyof typeof profile]}
                       onChange={(e) => setProfile(prev => ({ ...prev, [field.name]: e.target.value }))}
-                      className="pl-10"
+                      className="pl-12"
                     />
                   )}
                 </div>
@@ -228,7 +230,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
           <Button
             onClick={currentStep === 0 ? onBack : () => setCurrentStep(currentStep - 1)}
             variant="outline"
-            className="flex items-center"
+            className="flex items-center rounded-xl"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -237,7 +239,7 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
           <Button
             onClick={handleNext}
             disabled={!isStepValid()}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 flex items-center"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 flex items-center rounded-xl"
           >
             {currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}
             <ArrowRight className="ml-2 h-4 w-4" />

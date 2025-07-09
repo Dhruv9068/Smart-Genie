@@ -29,6 +29,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   });
   const { signIn, signUp } = useAuth();
 
+  // Reset form when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setFormData({
+        email: '',
+        password: '',
+        name: '',
+        country: 'US',
+      });
+    }
+  }, [isOpen, initialMode]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

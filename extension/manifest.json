@@ -15,7 +15,7 @@
     "https://*.scholarships.gov.in/*",
     "https://*.ssp.postmatric.karnataka.gov.in/*",
     "https://*.karepass.cgg.gov.in/*",
-    "https://scheme-genie-1982f.firebaseapp.com/*"
+    "https://schemegenie.netlify.app/*"
   ],
   "background": {
     "service_worker": "background.js"

@@ -1,283 +1,171 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
-  BarChart3, 
-  Users, 
-  Globe, 
-  TrendingUp, 
-  Award, 
-  MessageSquare,
+  BarChart3,
+  Sparkles,
   FileText,
-  Calendar,
-  Eye
+  Bell,
+  TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { MatchedSchemes, MatchedScheme } from '../components/dashboard/MatchedSchemes';
+import { MyApplications } from '../components/dashboard/MyApplications';
+import { ApplicationModal } from '../components/dashboard/ApplicationModal';
 import { useAuth } from '../context/AuthContext';
+import { firebaseService } from '../services/firebase';
+import { geminiService } from '../services/gemini';
 
 export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalUsers: 500237,
-    activeSchemes: 10847,
-    successfulApplications: 234156,
-    countriesServed: 52,
-    languagesSupported: 20,
-    aiInteractions: 1247893,
-  });
+  const [eligibleSchemes, setEligibleSchemes] = useState<MatchedScheme[]>([]);
+  const [userApplications, setUserApplications] = useState<any[]>([]);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [selectedScheme, setSelectedScheme] = useState<MatchedScheme | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate loading dashboard data
-    const timer = setTimeout(() => {
+    if (!user) {
+      navigate('/');
+      return;
+    }
+    
+    if (!user.profile?.interests || !user.profile?.age) {
+      navigate('/');
+      return;
+    }
+    
+    loadDashboardData();
+  }, [user, navigate]);
+
+  const loadDashboardData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Load eligible schemes and user applications in parallel
+      const [schemes, applications] = await Promise.all([
+        firebaseService.getEligibleSchemes(user.id),
+        firebaseService.getUserApplications(user.id)
+      ]);
+      
+      setEligibleSchemes(schemes.map(scheme => ({
+        ...scheme,
+        govApiSupport: Math.random() > 0.5, // Randomly assign for demo
+        officialPortal: scheme.website
+      })));
+      
+      setUserApplications(applications);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'application',
-      title: 'New application submitted for Student Aid Program',
-      country: 'Kenya',
-      time: '2 minutes ago',
-    },
-    {
-      id: 2,
-      type: 'chat',
-      title: 'AI Assistant helped user with farmer subsidy eligibility',
-      country: 'India',
-      time: '5 minutes ago',
-    },
-    {
-      id: 3,
-      type: 'scheme',
-      title: 'New women entrepreneur grant added',
-      country: 'Brazil',
-      time: '15 minutes ago',
-    },
-    {
-      id: 4,
-      type: 'reminder',
-      title: 'Deadline reminder sent for housing program',
-      country: 'Nigeria',
-      time: '23 minutes ago',
-    },
-  ];
-
-  const topCountriesByUsage = [
-    { country: 'India', users: 127853, percentage: 25.5 },
-    { country: 'United States', users: 95421, percentage: 19.1 },
-    { country: 'Brazil', users: 78234, percentage: 15.6 },
-    { country: 'Nigeria', users: 67891, percentage: 13.6 },
-    { country: 'Kenya', users: 45123, percentage: 9.0 },
-  ];
+  const handleApplyScheme = (scheme: MatchedScheme) => {
+    setSelectedScheme(scheme);
+    setShowApplicationModal(true);
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream-50 to-white pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid pt-20 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading dashboard..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 to-white pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid grid-hover-effect pt-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            SchemeGenie Dashboard
-            <BarChart3 className="inline-block ml-2 h-8 w-8 text-blue-500" />
-          </h1>
-          <p className="text-xl text-gray-600">
-            Global impact and platform analytics for benefit scheme discovery
-          </p>
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-12 h-12 bg-white rounded-2xl shadow-lg border-2 border-orange-200 flex items-center justify-center">
+              <img src="/Logo.png" alt="SchemeGenie" className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                Welcome back, {user?.name || 'User'}!
+              </h1>
+              <p className="text-xl text-gray-600">
+                Here are your personalized scheme matches and application status
+              </p>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {[
-            {
-              title: 'Total Users',
-              value: stats.totalUsers.toLocaleString(),
-              icon: Users,
-              color: 'text-blue-600 bg-blue-50',
-              change: '+12.3%',
-            },
-            {
-              title: 'Active Schemes',
-              value: stats.activeSchemes.toLocaleString(),
-              icon: FileText,
-              color: 'text-green-600 bg-green-50',
-              change: '+8.7%',
-            },
-            {
-              title: 'Successful Applications',
-              value: stats.successfulApplications.toLocaleString(),
-              icon: Award,
-              color: 'text-purple-600 bg-purple-50',
-              change: '+15.2%',
-            },
-            {
-              title: 'Countries Served',
-              value: stats.countriesServed.toString(),
-              icon: Globe,
-              color: 'text-orange-600 bg-orange-50',
-              change: '+2',
-            },
-            {
-              title: 'Languages Supported',
-              value: stats.languagesSupported.toString(),
-              icon: MessageSquare,
-              color: 'text-red-600 bg-red-50',
-              change: '+1',
-            },
-            {
-              title: 'AI Interactions',
-              value: stats.aiInteractions.toLocaleString(),
-              icon: TrendingUp,
-              color: 'text-yellow-600 bg-yellow-50',
-              change: '+23.4%',
-            },
-          ].map((metric, index) => (
-            <motion.div
-              key={metric.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">{metric.title}</p>
-                      <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-                      <p className="text-sm text-green-600 mt-1">{metric.change} this month</p>
-                    </div>
-                    <div className={`w-12 h-12 rounded-full ${metric.color} flex items-center justify-center`}>
-                      <metric.icon className="h-6 w-6" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    activity.type === 'application' ? 'bg-blue-100 text-blue-600' :
-                    activity.type === 'chat' ? 'bg-green-100 text-green-600' :
-                    activity.type === 'scheme' ? 'bg-purple-100 text-purple-600' :
-                    'bg-orange-100 text-orange-600'
-                  }`}>
-                    {activity.type === 'application' ? <FileText className="h-4 w-4" /> :
-                     activity.type === 'chat' ? <MessageSquare className="h-4 w-4" /> :
-                     activity.type === 'scheme' ? <Award className="h-4 w-4" /> :
-                     <Calendar className="h-4 w-4" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.title}</p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-gray-500">{activity.country}</span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-500">{activity.time}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Top Countries */}
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Top Countries by Usage</h3>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {topCountriesByUsage.map((country, index) => (
-                <motion.div
-                  key={country.country}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{country.country}</p>
-                      <p className="text-sm text-gray-600">{country.users.toLocaleString()} users</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{country.percentage}%</p>
-                    <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
-                      <div
-                        className="h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                        style={{ width: `${country.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Global Impact Section */}
-        <Card className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardContent className="p-8">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Global Impact
-              </h3>
-              <p className="text-lg text-gray-600 mb-6">
-                SchemeGenie has helped connect citizens with life-changing opportunities worldwide
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">$2.1B</p>
-                  <p className="text-sm text-gray-600">Benefits Secured</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-green-600">87%</p>
-                  <p className="text-sm text-gray-600">Success Rate</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-600">24/7</p>
-                  <p className="text-sm text-gray-600">AI Availability</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-orange-600">4.8⭐</p>
-                  <p className="text-sm text-gray-600">User Rating</p>
-                </div>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-r from-orange-50 to-orange-100 card-hover-shine">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-orange-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="h-6 w-6" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{eligibleSchemes.length}</div>
+              <div className="text-sm text-gray-600">Matched Schemes</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-blue-50 to-blue-100 card-hover-shine">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-blue-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{userApplications.length}</div>
+              <div className="text-sm text-gray-600">Applications</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-green-50 to-green-100 card-hover-shine">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-green-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{userApplications.filter(app => app.status === 'approved').length > 0 ? '100%' : '0%'}</div>
+              <div className="text-sm text-gray-600">Success Rate</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-purple-50 to-purple-100 card-hover-shine">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-purple-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <Bell className="h-6 w-6" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{userApplications.filter(app => app.status === 'pending').length}</div>
+              <div className="text-sm text-gray-600">Pending Deadlines</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <div className="space-y-8">
+          {/* Matched Schemes */}
+          <MatchedSchemes 
+            schemes={eligibleSchemes} 
+            onApplyScheme={handleApplyScheme} 
+          />
+          
+          {/* My Applications */}
+          <MyApplications 
+            applications={userApplications} 
+            onApplicationUpdate={loadDashboardData}
+          />
+        </div>
+
+        {/* Application Modal */}
+        <ApplicationModal
+          isOpen={showApplicationModal}
+          onClose={() => setShowApplicationModal(false)}
+          scheme={selectedScheme}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 export class SpeechService {
   private recognition: SpeechRecognition | null = null;
   private synthesis: SpeechSynthesis;
+  private isCurrentlyListening = false;
 
   constructor() {
     this.synthesis = window.speechSynthesis;
@@ -14,6 +15,7 @@ export class SpeechService {
     if (this.recognition) {
       this.recognition.continuous = false;
       this.recognition.interimResults = false;
+      this.recognition.maxAlternatives = 1;
     }
   }
 
@@ -24,23 +26,38 @@ export class SpeechService {
         return;
       }
 
+      if (this.isCurrentlyListening) {
+        this.recognition.stop();
+        this.isCurrentlyListening = false;
+      }
+
       this.recognition.lang = language;
+      this.isCurrentlyListening = true;
       
       this.recognition.onresult = (event) => {
         const result = event.results[0][0].transcript;
+        this.isCurrentlyListening = false;
         resolve(result);
       };
 
       this.recognition.onerror = (event) => {
+        this.isCurrentlyListening = false;
         reject(new Error(`Speech recognition error: ${event.error}`));
       };
 
       this.recognition.onend = () => {
-        // Recognition ended
+        this.isCurrentlyListening = false;
       };
 
       this.recognition.start();
     });
+  }
+
+  stopListening(): void {
+    if (this.recognition && this.isCurrentlyListening) {
+      this.recognition.stop();
+      this.isCurrentlyListening = false;
+    }
   }
 
   speak(text: string, language: string = 'en-US'): Promise<void> {

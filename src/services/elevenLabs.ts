@@ -54,10 +54,17 @@ export class ElevenLabsService {
       await this.playAudio(audioBlob);
     } catch (error) {
       console.error('Failed to speak text:', error);
-      // Fallback to browser speech synthesis
-      const utterance = new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(utterance);
+      throw error; // Let the caller handle fallback
     }
+  }
+
+  stopSpeaking(): void {
+    // Stop any currently playing audio
+    const audioElements = document.querySelectorAll('audio');
+    audioElements.forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
   }
 }
 

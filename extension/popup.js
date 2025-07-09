@@ -6,14 +6,7 @@ class SchemeGeniePopup {
         this.isConnected = false;
         this.currentTab = null;
         this.fillingInProgress = false;
-        this.firebaseConfig = {
-            apiKey: "AIzaSyCZmv4R5JsQkTG3jaLH1AlUdZzWByC539s",
-            authDomain: "scheme-genie-1982f.firebaseapp.com",
-            projectId: "scheme-genie-1982f",
-            storageBucket: "scheme-genie-1982f.firebasestorage.app",
-            messagingSenderId: "927689273758",
-            appId: "1:927689273758:web:00bda652b2af6b8974e68f"
-        };
+        this.websiteUrl = 'https://schemegenie.netlify.app';
         
         this.init();
     }
@@ -385,7 +378,7 @@ class SchemeGeniePopup {
     async handleLogin() {
         try {
             // Open SchemeGenie login page
-            const schemeGenieUrl = 'https://scheme-genie-1982f.firebaseapp.com/';
+            const schemeGenieUrl = 'https://schemegenie.netlify.app/';
             await chrome.tabs.create({ url: schemeGenieUrl });
             
             // Show instructions
@@ -429,7 +422,7 @@ class SchemeGeniePopup {
 
     async openDashboard() {
         try {
-            const dashboardUrl = 'https://scheme-genie-1982f.firebaseapp.com/dashboard';
+            const dashboardUrl = 'https://schemegenie.netlify.app/dashboard';
             await chrome.tabs.create({ url: dashboardUrl });
         } catch (error) {
             console.error('Failed to open dashboard:', error);
@@ -563,7 +556,7 @@ class SchemeGeniePopup {
     }
 
     openHelp() {
-        const helpUrl = 'https://scheme-genie-1982f.firebaseapp.com/';
+        const helpUrl = 'https://schemegenie.netlify.app/';
         chrome.tabs.create({ url: helpUrl });
     }
 

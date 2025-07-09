@@ -93,14 +93,14 @@ export const InterestSelector: React.FC<InterestSelectorProps> = ({ onComplete }
   };
 
   return (
-    <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid">
+    <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid grid-hover-effect">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <div className="w-20 h-20 mx-auto mb-6 bg-white rounded-full shadow-lg border-2 border-orange-200 flex items-center justify-center animate-float">
+          <div className="w-20 h-20 mx-auto mb-6 bg-white rounded-2xl shadow-lg border-2 border-orange-200 flex items-center justify-center animate-float">
             <img src="/Logo.png" alt="SchemeGenie" className="w-12 h-12 p-1" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -124,16 +124,16 @@ export const InterestSelector: React.FC<InterestSelectorProps> = ({ onComplete }
                   selectedInterests.includes(interest.id)
                     ? 'ring-2 ring-orange-500 bg-orange-50 transform scale-105'
                     : 'hover:shadow-lg hover:transform hover:scale-102'
-                }`}
+                } card-hover-shine`}
                 onClick={() => toggleInterest(interest.id)}
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${interest.color} flex items-center justify-center text-2xl`}>
-                      {interest.icon}
+                      <span className="text-white text-xl">{interest.icon}</span>
                     </div>
                     {selectedInterests.includes(interest.id) && (
-                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-orange-500 rounded-xl flex items-center justify-center">
                         <Check className="h-4 w-4 text-white" />
                       </div>
                     )}
@@ -160,7 +160,7 @@ export const InterestSelector: React.FC<InterestSelectorProps> = ({ onComplete }
             onClick={handleContinue}
             disabled={selectedInterests.length === 0}
             size="lg"
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-8 py-4 text-lg"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-8 py-4 text-lg rounded-xl"
           >
             Continue with {selectedInterests.length} selection{selectedInterests.length !== 1 ? 's' : ''}
             <ArrowRight className="ml-2 h-5 w-5" />

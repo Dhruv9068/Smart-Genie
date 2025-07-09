@@ -1,14 +1,7 @@
 // SchemeGenie Extension Background Script with Firebase Integration
 class SchemeGenieBackground {
     constructor() {
-        this.firebaseConfig = {
-            apiKey: "AIzaSyCZmv4R5JsQkTG3jaLH1AlUdZzWByC539s",
-            authDomain: "scheme-genie-1982f.firebaseapp.com",
-            projectId: "scheme-genie-1982f",
-            storageBucket: "scheme-genie-1982f.firebasestorage.app",
-            messagingSenderId: "927689273758",
-            appId: "1:927689273758:web:00bda652b2af6b8974e68f"
-        };
+        this.websiteUrl = 'https://schemegenie.netlify.app';
         this.init();
     }
 
@@ -94,19 +87,19 @@ class SchemeGenieBackground {
         // Listen for requests to SchemeGenie to detect login
         chrome.webRequest.onCompleted.addListener(
             (details) => {
-                if (details.url.includes('scheme-genie-1982f.firebaseapp.com') && 
+                if (details.url.includes('schemegenie.netlify.app') && 
                     details.url.includes('dashboard')) {
                     // User might have logged in, trigger sync
                     this.syncWithSchemeGenie();
                 }
             },
-            { urls: ["https://scheme-genie-1982f.firebaseapp.com/*"] }
+            { urls: ["https://schemegenie.netlify.app/*"] }
         );
     }
 
     async handleFirstInstall() {
         // Open welcome page
-        const welcomeUrl = 'https://scheme-genie-1982f.firebaseapp.com/';
+        const welcomeUrl = 'https://schemegenie.netlify.app/';
         await chrome.tabs.create({ url: welcomeUrl });
         
         // Set default settings

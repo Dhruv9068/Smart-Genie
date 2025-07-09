@@ -72,7 +72,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       await firebaseService.updateUserProfile(user.id, profile);
-      const updatedUser = { ...user, profile: { ...user.profile, ...profile } };
+      const updatedUser = { 
+        ...user, 
+        profile: { 
+          ...user.profile, 
+          ...profile,
+          interests: profile.interests || user.profile?.interests
+        } 
+      };
       setUser(updatedUser);
     } catch (error) {
       console.error('Profile update failed:', error);

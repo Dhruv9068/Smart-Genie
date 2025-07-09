@@ -44,34 +44,38 @@ export const SchemeFilter: React.FC<SchemeFilterProps> = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6 card-hover-shine">
       <div className="flex items-center space-x-2 mb-4">
-        <Filter className="h-5 w-5 text-gray-600" />
+        <div className="w-5 h-5 bg-white rounded-full border border-orange-200 flex items-center justify-center">
+          <Filter className="h-3 w-3 text-orange-600" />
+        </div>
         <h3 className="text-lg font-semibold text-gray-900">Filter Schemes</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full border border-orange-200 flex items-center justify-center">
+              <Search className="h-3 w-3 text-orange-600" />
+            </div>
             <Input
               placeholder="Search schemes..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10"
+              className="pl-12"
             />
           </div>
         </div>
 
         <Select
-          label={t('schemes.filter.country')}
+          label="Filter by Country"
           value={selectedCountry}
           onChange={(e) => onCountryChange(e.target.value)}
           options={countryOptions}
         />
 
         <Select
-          label={t('schemes.filter.category')}
+          label="Filter by Category"
           value={selectedCategory}
           onChange={(e) => onCategoryChange(e.target.value)}
           options={categoryOptions}
@@ -84,6 +88,7 @@ export const SchemeFilter: React.FC<SchemeFilterProps> = ({
             onClick={onClearFilters}
             variant="outline"
             size="sm"
+            className="rounded-xl"
           >
             Clear Filters
           </Button>
