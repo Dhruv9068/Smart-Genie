@@ -19,13 +19,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize Firebase auth listener
-    const unsubscribe = firebaseService.initAuthListener((user: User | null) => {
-      setUser(user);
-      setLoading(false);
-    });
+    // Initialize Firebase auth listener and check localStorage
+    const initAuth = async () => {
+      // First check localStorage for immediate access
+      const storedUser = localStorage.getItem('schemeGenie_user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          console.log('Loaded user from localStorage:', parsedUser);
+        } catch (error) {
+          console.error('Failed to parse stored user:', error);
+          localStorage.removeItem('schemeGenie_user');
+        }
+      }
+      
+      // Then set up Firebase listener
+      const unsubscribe = firebaseService.initAuthListener((user: User | null) => {
+        console.log('Firebase auth state changed:', user);
+        setUser(user);
+        
+        // Update localStorage
+        if (user) {
+          localStorage.setItem('schemeGenie_user', JSON.stringify(user));
+        } else {
+          localStorage.removeItem('schemeGenie_user');
+        }
+        
+        setLoading(false);
+      });
+      
+      // If no stored user, still set loading to false after a timeout
+      if (!storedUser) {
+        setTimeout(() => setLoading(false), 1000);
+      } else {
+        setLoading(false);
+      }
+      
+      return unsubscribe;
+    };
 
-    return () => unsubscribe();
+    const unsubscribePromise = initAuth();
+    
+    return () => {
+      unsubscribePromise.then(unsubscribe => unsubscribe());
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -35,11 +73,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Handle demo account
       if (email === 'demo@schemegenie.com' && password === 'demo123') {
         const demoUser = await firebaseService.setupDemoAccount();
+        localStorage.setItem('schemeGenie_user', JSON.stringify(demoUser));
         setUser(demoUser);
         return;
       }
       
       const userData = await firebaseService.signIn(email, password);
+      localStorage.setItem('schemeGenie_user', JSON.stringify(userData));
       setUser(userData);
     } catch (error) {
       console.error('Sign in failed:', error);
@@ -53,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const newUser = await firebaseService.signUp(email, password, userData);
+      localStorage.setItem('schemeGenie_user', JSON.stringify(newUser));
       setUser(newUser);
     } catch (error) {
       console.error('Sign up failed:', error);
@@ -66,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       await firebaseService.signOut();
+      localStorage.removeItem('schemeGenie_user');
       setUser(null);
     } catch (error) {
       console.error('Sign out failed:', error);
@@ -97,6 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Store updated user in localStorage for immediate access
       localStorage.setItem('schemeGenie_user', JSON.stringify(updatedUser));
+      
+      console.log('Auth context: Profile update complete, user state updated');
     } catch (error) {
       console.error('Profile update failed:', error);
       throw error;

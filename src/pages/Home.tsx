@@ -13,9 +13,10 @@ export const Home: React.FC = () => {
   const { user } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'interests' | 'profile' | 'complete'>('interests');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [profileCompleted, setProfileCompleted] = useState(false);
 
   // Show onboarding for new users without completed profile
-  if (user && (!user.profile?.interests || !user.profile?.age)) {
+  if (user && (!user.profile?.interests || !user.profile?.age) && !profileCompleted) {
     if (onboardingStep === 'interests') {
       return (
         <InterestSelector 
@@ -32,8 +33,14 @@ export const Home: React.FC = () => {
         <ProfileBuilder 
           interests={selectedInterests}
           onComplete={() => {
-            // Profile completion will handle redirect
-            console.log('Profile completed, redirecting...');
+            console.log('Home: Profile completed, updating state');
+            setProfileCompleted(true);
+            setOnboardingStep('complete');
+            
+            // Force a page refresh to show the main app
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
           }}
           onBack={() => setOnboardingStep('interests')}
         />
@@ -334,7 +341,7 @@ export const Home: React.FC = () => {
                   }
                 }}
                 size="lg"
-                className="text-lg px-8 py-4 bg-white text-orange-400 hover:bg-black shadow-lg rounded-xl font-semibold"
+                className="text-lg px-8 py-4 bg-white text-orange-600 hover:bg-black shadow-lg rounded-xl font-semibold"
               >
                 <span className="text-white">{!user ? 'Start Automating Now' : 'Open AI Assistant'}</span>
                 <ArrowRight className="ml-2 h-5 w-5" />

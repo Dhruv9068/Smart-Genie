@@ -16,6 +16,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, loading } = useAuth();
 
+  console.log('ProtectedRoute: user =', user, 'loading =', loading, 'requireProfile =', requireProfile);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid pt-20 flex items-center justify-center">
@@ -52,6 +54,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireProfile && (!user.profile?.interests || !user.profile?.age)) {
+    console.log('ProtectedRoute: Profile incomplete, redirecting to home');
     return (
       <div className="min-h-screen bg-cream-50 bg-grid-pattern bg-grid grid-hover-effect pt-20 flex items-center justify-center">
         <Card className="max-w-md mx-4 card-hover-shine">

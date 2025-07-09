@@ -136,6 +136,8 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
         return;
       }
       
+      console.log('ProfileBuilder: Updating profile with data:', profile);
+      
       await updateProfile({
         ...profile,
         interests,
@@ -143,16 +145,15 @@ export const ProfileBuilder: React.FC<ProfileBuilderProps> = ({
         income: parseInt(profile.income),
         familySize: parseInt(profile.familySize),
         disabilities: false,
-        
+      
       });
       
       toast.success('Profile completed successfully!');
       
-      // Small delay to ensure profile is saved
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('ProfileBuilder: Profile update complete, calling onComplete');
       
-      // Force a page reload to refresh the auth state
-      window.location.href = '/';
+      // Small delay to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       onComplete();
     } catch (error) {

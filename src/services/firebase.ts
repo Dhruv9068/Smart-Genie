@@ -15,12 +15,24 @@ export class FirebaseService {
   // Initialize auth state listener
   initAuthListener(callback: (user: AppUser | null) => void) {
     return onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('Firebase auth state changed:', firebaseUser?.email);
+      
       if (firebaseUser) {
         try {
+          // Handle demo account
+          if (firebaseUser.email === 'demo@schemegenie.com') {
+            const demoUser = await this.setupDemoAccount();
+            callback(demoUser);
+            return;
+          }
+          
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
-            callback(userDoc.data() as AppUser);
+            const userData = userDoc.data() as AppUser;
+            console.log('Firebase: User data loaded:', userData);
+            callback(userData);
           } else {
+            console.log('Firebase: User document not found');
             callback(null);
           }
         } catch (error) {
@@ -28,6 +40,7 @@ export class FirebaseService {
           callback(null);
         }
       } else {
+        console.log('Firebase: User signed out');
         callback(null);
       }
     });
@@ -72,6 +85,8 @@ export class FirebaseService {
 
   // Setup demo account for judges
   async setupDemoAccount(): Promise<AppUser> {
+    console.log('Setting up demo account...');
+    
     const demoUser: AppUser = {
       id: 'demo-user-123',
       email: 'demo@schemegenie.com',
@@ -94,8 +109,12 @@ export class FirebaseService {
     // Save demo user to Firestore
     await setDoc(doc(db, 'users', demoUser.id), demoUser);
     
+    console.log('Demo user saved to Firestore:', demoUser);
+    
     // Create sample applications for demo
     await this.createDemoApplications(demoUser.id);
+    
+    console.log('Demo applications created');
     
     return demoUser;
   }
@@ -195,11 +214,9 @@ export class FirebaseService {
     try {
       // Handle demo account login
       if (email === 'demo@schemegenie.com' && password === 'demo123') {
+        console.log('Demo account login detected');
         const demoUser = await this.setupDemoAccount();
-        
-        // Store in localStorage for immediate access
-        localStorage.setItem('schemeGenie_user', JSON.stringify(demoUser));
-        
+        console.log('Demo account setup complete:', demoUser);
         return demoUser;
       }
       
@@ -230,6 +247,12 @@ export class FirebaseService {
   async updateUserProfile(userId: string, profile: Partial<UserProfile>): Promise<void> {
     try {
       console.log('Firebase: Updating profile for user:', userId, 'with data:', profile);
+      
+      // Handle demo user
+      if (userId === 'demo-user-123') {
+        console.log('Demo user profile update - skipping Firebase update');
+        return;
+      }
       
       const userRef = doc(db, 'users', userId);
       

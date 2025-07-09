@@ -20,17 +20,22 @@ export const Header: React.FC = () => {
     // Check if route requires authentication
     const protectedRoutes = ['/assistant', '/schemes', '/dashboard'];
     
+    console.log('Header: Navigation clicked:', href, 'User:', user);
+    
     if (protectedRoutes.includes(href) && !user) {
+      console.log('Header: User not authenticated, showing auth modal');
       setShowAuthModal(true);
       return;
     }
     
     // Check if route requires completed profile
     if (protectedRoutes.includes(href) && user && (!user.profile?.interests || !user.profile?.age)) {
+      console.log('Header: Profile incomplete, redirecting to home');
       window.location.href = '/';
       return;
     }
     
+    console.log('Header: Navigation allowed, redirecting to:', href);
     window.location.href = href;
   };
   const navigation = [
@@ -88,7 +93,7 @@ export const Header: React.FC = () => {
                 <LanguageSelector />
                 
                 <Button
-                  onClick={() => window.open('https://your-site.com/schemegenie_extension.zip', '_blank')}
+                  onClick={() => window.open('https://github.com/Dhruv9068/Smart-Genie/tree/main/extension', '_blank')}
                   variant="outline"
                   size="sm"
                   className="hidden md:flex items-center space-x-2 border-orange-300 text-orange-600 hover:bg-orange-50 rounded-full"
