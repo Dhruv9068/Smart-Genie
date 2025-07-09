@@ -110,6 +110,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {/* Form */}
             <div className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Demo Account Info */}
+                <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-xl p-4 mb-4">
+                  <h4 className="font-semibold text-orange-800 mb-2">🎬 Demo Account for Judges</h4>
+                  <div className="text-sm text-orange-700 space-y-1">
+                    <p><strong>Email:</strong> demo@schemegenie.com</p>
+                    <p><strong>Password:</strong> demo123</p>
+                    <p className="text-xs mt-2">Pre-loaded with sample applications and approved forms</p>
+                  </div>
+                </div>
+                
                 {mode === 'signup' && (
                   <>
                     <div className="relative">

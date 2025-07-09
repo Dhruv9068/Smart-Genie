@@ -31,6 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      
+      // Handle demo account
+      if (email === 'demo@schemegenie.com' && password === 'demo123') {
+        const demoUser = await firebaseService.setupDemoAccount();
+        setUser(demoUser);
+        return;
+      }
+      
       const userData = await firebaseService.signIn(email, password);
       setUser(userData);
     } catch (error) {

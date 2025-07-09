@@ -36,6 +36,11 @@ export class FirebaseService {
   // Authentication methods
   async signUp(email: string, password: string, userData: Partial<AppUser>): Promise<AppUser> {
     try {
+      // Check if this is the demo account setup
+      if (email === 'demo@schemegenie.com') {
+        return await this.setupDemoAccount();
+      }
+      
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
@@ -65,8 +70,139 @@ export class FirebaseService {
     }
   }
 
+  // Setup demo account for judges
+  async setupDemoAccount(): Promise<AppUser> {
+    const demoUser: AppUser = {
+      id: 'demo-user-123',
+      email: 'demo@schemegenie.com',
+      name: 'John Demo Student',
+      country: 'IN',
+      language: 'en',
+      profile: {
+        age: 22,
+        income: 25000,
+        education: 'bachelors',
+        employment: 'student',
+        familySize: 4,
+        disabilities: false,
+        gender: 'male',
+        location: 'Bangalore, Karnataka',
+        interests: ['education', 'business', 'employment'],
+      },
+    };
+
+    // Save demo user to Firestore
+    await setDoc(doc(db, 'users', demoUser.id), demoUser);
+    
+    // Create sample applications for demo
+    await this.createDemoApplications(demoUser.id);
+    
+    return demoUser;
+  }
+
+  async createDemoApplications(userId: string): Promise<void> {
+    const demoApplications = [
+      {
+        id: 'demo-app-1',
+        userId,
+        schemeId: 'nmms-2024',
+        schemeTitle: 'National Means-cum-Merit Scholarship (NMMS)',
+        status: 'approved',
+        amount: '₹12,000 per year',
+        applicationData: {
+          fullName: 'John Demo Student',
+          email: 'demo@schemegenie.com',
+          phone: '+91-9876543210',
+          dateOfBirth: '2002-05-15',
+          fatherName: 'Robert Demo',
+          motherName: 'Mary Demo',
+          address: '123 Demo Street, Bangalore',
+          pincode: '560001',
+          state: 'Karnataka',
+          district: 'Bangalore Urban',
+          income: '25000',
+          category: 'General',
+          bankAccount: '1234567890',
+          ifscCode: 'SBIN0001234',
+          class: '12th',
+          school: 'Demo High School',
+          percentage: '92.5'
+        },
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-20'),
+        approvedAt: new Date('2024-01-20')
+      },
+      {
+        id: 'demo-app-2',
+        userId,
+        schemeId: 'pmrf-2024',
+        schemeTitle: 'Prime Minister\'s Research Fellowship (PMRF)',
+        status: 'pending',
+        amount: '₹70,000-80,000/month',
+        applicationData: {
+          fullName: 'John Demo Student',
+          email: 'demo@schemegenie.com',
+          phone: '+91-9876543210',
+          education: 'Bachelor of Engineering',
+          university: 'Demo Institute of Technology',
+          cgpa: '9.2',
+          researchArea: 'Artificial Intelligence',
+          supervisor: 'Dr. Demo Professor',
+          publications: '2 conference papers',
+          experience: '1 year research internship'
+        },
+        createdAt: new Date('2024-01-25'),
+        updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: 'demo-app-3',
+        userId,
+        schemeId: 'csir-ugc-jrf-2024',
+        schemeTitle: 'CSIR-UGC JRF-NET Fellowship',
+        status: 'draft',
+        amount: '₹31,000-35,000/month',
+        applicationData: {
+          fullName: 'John Demo Student',
+          email: 'demo@schemegenie.com',
+          phone: '+91-9876543210',
+          netScore: '95.5',
+          subject: 'Computer Science',
+          rank: '45',
+          validityPeriod: '3 years'
+        },
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-01')
+      }
+    ];
+
+    // Save all demo applications
+    for (const app of demoApplications) {
+      await setDoc(doc(db, 'applications', app.id), app);
+      
+      // If approved, also add to approved_applications collection
+      if (app.status === 'approved') {
+        await setDoc(doc(db, 'approved_applications', `${userId}_${app.id}`), {
+          userId,
+          applicationId: app.id,
+          approvedAt: app.approvedAt || new Date(),
+          status: 'approved'
+        });
+      }
+    }
+  }
+
   async signIn(email: string, password: string): Promise<AppUser> {
     try {
+      // Handle demo account login
+      if (email === 'demo@schemegenie.com' && password === 'demo123') {
+        const demoUser = await this.setupDemoAccount();
+        
+        // Store in localStorage for immediate access
+        localStorage.setItem('schemeGenie_user', JSON.stringify(demoUser));
+        
+        return demoUser;
+      }
+      
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       
