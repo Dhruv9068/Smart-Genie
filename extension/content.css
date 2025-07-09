@@ -1,0 +1,310 @@
+/* SchemeGenie Extension Content Styles */
+
+/* Highlight animation for filled fields */
+@keyframes schemeGenieHighlight {
+    0% {
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    }
+}
+
+/* Filled field indicator */
+.schemegenie-filled {
+    position: relative;
+}
+
+.schemegenie-filled::after {
+    content: '✓';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #10b981;
+    font-weight: bold;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+/* Form detection overlay */
+.schemegenie-form-detected {
+    position: relative;
+}
+
+.schemegenie-form-detected::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px dashed #f97316;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Loading overlay for form filling */
+.schemegenie-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.schemegenie-loading-content {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 300px;
+}
+
+.schemegenie-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #f97316;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.schemegenie-loading-text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.schemegenie-loading-subtext {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Progress indicator */
+.schemegenie-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #e5e7eb;
+    z-index: 9999;
+}
+
+.schemegenie-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #f97316, #ea580c);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Field focus enhancement */
+input:focus.schemegenie-enhanced,
+select:focus.schemegenie-enhanced,
+textarea:focus.schemegenie-enhanced {
+    outline: none !important;
+    border-color: #f97316 !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+}
+
+/* Success checkmark animation */
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.schemegenie-checkmark {
+    animation: checkmark 0.3s ease;
+}
+
+/* Error indicator */
+.schemegenie-error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+.schemegenie-error::after {
+    content: '⚠';
+    color: #ef4444;
+}
+
+/* Tooltip styles */
+.schemegenie-tooltip {
+    position: absolute;
+    background: #1f2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.schemegenie-tooltip.show {
+    opacity: 1;
+}
+
+.schemegenie-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+}
+
+/* Floating action button */
+.schemegenie-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+    cursor: pointer;
+    z-index: 9998;
+    transition: all 0.3s ease;
+}
+
+.schemegenie-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5);
+}
+
+.schemegenie-fab-icon {
+    color: white;
+    font-size: 24px;
+}
+
+/* Notification styles */
+.schemegenie-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    max-width: 320px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-left: 4px solid #f97316;
+}
+
+.schemegenie-notification-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.schemegenie-notification-icon {
+    font-size: 20px;
+}
+
+.schemegenie-notification-title {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.schemegenie-notification-message {
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Form detection badge */
+.schemegenie-form-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #f97316;
+    color: white;
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .schemegenie-loading-content {
+        margin: 20px;
+        max-width: calc(100vw - 40px);
+    }
+    
+    .schemegenie-notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .schemegenie-fab {
+        bottom: 80px; /* Avoid mobile browser UI */
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .schemegenie-loading-content {
+        background: #1f2937;
+        color: white;
+    }
+    
+    .schemegenie-notification {
+        background: #1f2937;
+        color: white;
+    }
+    
+    .schemegenie-notification-title {
+        color: white;
+    }
+    
+    .schemegenie-notification-message {
+        color: #d1d5db;
+    }
+}

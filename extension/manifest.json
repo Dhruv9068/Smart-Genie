@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "SchemeGenie - Auto Form Filler",
+  "version": "1.0.0",
+  "description": "Automatically fill government benefit application forms with your saved SchemeGenie profile data",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://*.gov/*",
+    "https://*.gov.in/*",
+    "https://*.scholarships.gov.in/*",
+    "https://*.ssp.postmatric.karnataka.gov.in/*",
+    "https://*.karepass.cgg.gov.in/*",
+    "https://scheme-genie-1982f.firebaseapp.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.gov/*",
+        "https://*.gov.in/*",
+        "https://*.scholarships.gov.in/*",
+        "https://*.ssp.postmatric.karnataka.gov.in/*",
+        "https://*.karepass.cgg.gov.in/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SchemeGenie Auto Filler"
+  },
+  "icons": {
+    "16": "Logo.png",
+    "48": "Logo.png",
+    "128": "Logo.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["Logo.png", "popup.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
