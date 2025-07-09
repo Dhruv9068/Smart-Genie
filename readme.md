@@ -335,7 +335,7 @@ open http://localhost:5173/demo-form.html
 # Debug extension
 # Right-click extension → Inspect popup
 
-
+```
 ## 🧠 Team Structure
 
 ```mermaid
